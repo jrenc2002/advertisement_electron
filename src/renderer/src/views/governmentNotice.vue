@@ -32,6 +32,10 @@ import PDFPreview from '@renderer/views/PdfPreview.vue'
 
 const router = useRouter()
 const currentPage = ref(1)
+function updatePage(page: number) {
+  currentPage.value = page
+  console.log('当前页码:', page)
+}
 
 const pdfSource =
   'https://data.weather.gov.hk/weatherAPI/doc/HKO_Open_Data_API_Documentation_tc.pdf' // 可替换为不同的 PDF URL
@@ -40,11 +44,6 @@ function goTo(route: string) {
   useRouterStore().setCurrentRouter(route as routerState)
   console.log(useRouterStore().getCurrentRouter)
   router.push(route)
-}
-
-function updatePage(page: number) {
-  currentPage.value = page
-  console.log('当前页码:', page)
 }
 
 onBeforeUnmount(() => {
