@@ -79,17 +79,17 @@ const updatePage = (page: number) => {
   height: 100%;
   flex-direction: row;
   gap: 10px;
-  overflow-y: auto;
   .thumbnails-container {
     width: 240px; /* 调整宽度以适应布局需求 */
+    padding: 10px;
     border-right: 1px solid #ddd;
   }
 
   .pdf-viewer-right {
     flex: 1;
     flex-direction: column;
-    gap: 10px;
     position: relative;
+    background-color: #ccc;
     .layout-return-button {
       position: relative;
       display: flex;
@@ -102,6 +102,8 @@ const updatePage = (page: number) => {
       button {
         top: 10px;
         left: 20px;
+        margin-left: 5%;
+        margin-top: 10px;
         display: flex;
         background-color: #fff;
         flex-direction: row;

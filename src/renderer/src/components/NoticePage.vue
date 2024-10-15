@@ -51,7 +51,7 @@ import { useRouter } from 'vue-router'
 import { useRouterStore } from '@renderer/stores/index'
 import { routerState } from '@renderer/stores/index'
 // 定义组件的 props
-const props = defineProps<{
+defineProps<{
   title: string
   pdfSource: string[]
   currentRoute: string

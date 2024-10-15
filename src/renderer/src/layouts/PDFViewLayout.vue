@@ -49,7 +49,8 @@ import WeatherFooter from '../components/WeatherFooter.vue'
     display: flex;
     flex-direction: column;
 
-    background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
+    // background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
+    background-color: #fff;
     height: 100%;
     width: 100%;
     .layout-body {
