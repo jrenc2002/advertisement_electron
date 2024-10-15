@@ -38,9 +38,9 @@
             }}°C
           </p>
         </div>
-        <p class="p-content">
+        <!-- <p class="p-content">
           {{ getWeatherDetails(weatherData_today?.icon[0] || 50) }}
-        </p>
+        </p> -->
 
         <div
           v-for="(warning, key) in weatherData_warning"
@@ -66,9 +66,9 @@
           :src="`src/assets/weatherIcons/pic${forecast?.ForecastIcon}.png`"
           :alt="`pic${forecast?.ForecastIcon}`"
         />
-        <p class="p-content">
+        <!-- <p class="p-content">
           {{ getWeatherDetails(forecast?.ForecastIcon || 50) }}
-        </p>
+        </p> -->
         <p class="p-content-right">
           {{ forecast?.forecastMintemp?.value }}°C~{{ forecast?.forecastMaxtemp?.value }}°C
         </p>
@@ -80,7 +80,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
-import { getWeatherDetails } from '@renderer/data/iconIds'
+// import { getWeatherDetails } from '@renderer/data/iconIds'
 
 interface WeatherData_forecast {
   weatherForecast?: {

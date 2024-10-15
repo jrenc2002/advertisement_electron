@@ -1,84 +1,80 @@
 <!-- src/renderer/src/components/PDFThumbnails.vue -->
 <template>
   <div class="thumbnails-container">
-    <div
-      v-for="pa in totalPages"
-      :key="pa"
-      class="thumbnail"
-      @click="selectPage(pa)"
-    >
-      <PDF
-        :src="pdfUrl"
-        :page="pa"
-        :pdf-width="'100%'"
-        :row-gap="0"
-        :scroll-threshold="0"
-        :disable-auto-fetch="true"
-        :disable-range="true"
-        :disable-stream="true"
-        :stop-at-errors="false"
-        :use-system-fonts="false"
-        class="thumbnail-pdf"
-        @on-pdf-init="handlePdfInit"
-      />
-      <div class="page-number">第 {{ pa }} 页</div>
-    </div>
+    <PDF
+      :src="pdfUrl"
+      :page="currentPage"
+      :pdf-width="'100%'"
+      :show-progress="true"
+      :show-page-number="true"
+      :show-page-tooltip="true"
+      :show-back-to-top-btn="false"
+      :scroll-threshold="0"
+      :row-gap="10"
+      :use-system-fonts="false"
+      :disable-stream="true"
+      :disable-auto-fetch="true"
+      @click="selectPage(currentPage)"
+      @on-page-change="handlePageChange"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits, ref } from 'vue'
-import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 import PDF from 'pdf-vue3'
+// import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 defineProps<{
   pdfUrl: string
 }>()
 
-const handlePdfInit = (pdf: PDFDocumentProxy) => {
-  // totalPages.value = pdf.numPages
-  console.log(pdf)
-}
-
-const emits = defineEmits<{
-  (e: 'page-selected', page: number): void
+const currentPage = ref(1)
+const emit = defineEmits<{
+  (event: 'page-selected', page: number): void
 }>()
 
-const totalPages = ref(1) // 实际情况应通过 PDF.js 获取
-
 const selectPage = (page: number) => {
-  emits('page-selected', page)
+  console.log('selectPage', page)
+  currentPage.value = page
+  emit('page-selected', page)
 }
+
+const handlePageChange = (page: number) => {
+  console.log('handlePageChange', page)
+  currentPage.value = page
+}
+// const handlePdfInit = (pdf: PDFDocumentProxy) => {
+//   // totalPages.value = pdf.numPages
+//   console.log(pdf)
+// }
 </script>
 
 <style scoped>
 .thumbnails-container {
   display: flex;
   flex-direction: column;
+  height: 60%;
   overflow-y: auto;
-  height: 100%;
   width: 150px;
   border-right: 1px solid #ddd;
 }
 
-.thumbnail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 10px 0;
-  cursor: pointer;
+.thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar) {
+  width: 8px; /* 滚动条宽度 */
 }
 
-.thumbnail-pdf {
-  width: 100%;
-  height: 100px;
-  object-fit: contain;
-  border: 1px solid #ddd;
-  margin-bottom: 5px;
+.thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar-track) {
+  background: #f1f1f1; /* 滚动条轨道背景色 */
+  border-radius: 4px;
 }
 
-.page-number {
-  text-align: center;
-  font-size: 12px;
-  margin-top: 5px;
+.thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar-thumb) {
+  background-color: #888; /* 滚动条滑块颜色 */
+  border-radius: 4px;
+  border: 1px solid #f1f1f1; /* 滚动条滑块边框，模拟轨道间距 */
+}
+
+.thumbnails-container:deep(.pdf-vue3-scroller::-webkit-scrollbar-thumb:hover) {
+  background-color: #555; /* 滚动条滑块悬停颜色 */
 }
 </style>

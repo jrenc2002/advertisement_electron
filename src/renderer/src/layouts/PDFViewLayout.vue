@@ -18,7 +18,6 @@
 <script setup>
 import AdvertisementTop from '../components/AdvertisementTop.vue'
 import WeatherFooter from '../components/WeatherFooter.vue'
-
 </script>
 
 <style scoped lang="scss">
@@ -36,6 +35,8 @@ import WeatherFooter from '../components/WeatherFooter.vue'
     min-height: 60%;
   }
   .weather-footer {
+    position: fixed;
+    bottom: 0;
     height: 20%;
   }
 }
@@ -47,7 +48,8 @@ import WeatherFooter from '../components/WeatherFooter.vue'
   .layout-content {
     display: flex;
     flex-direction: column;
-    background-color: #ccc;
+
+    background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
     height: 100%;
     width: 100%;
     .layout-body {

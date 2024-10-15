@@ -8,11 +8,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     component: DefaultLayout,
     children: [
-      { path: '', component: () => import('../views/home.vue') },
-      { path: 'urgentNotice', component: () => import('../views/urgentNotice.vue') },
-      { path: 'generalNotice', component: () => import('../views/generalNotice.vue') },
-      { path: 'corporateNotice', component: () => import('../views/corporateNotice.vue') },
-      { path: 'governmentNotice', component: () => import('../views/governmentNotice.vue') }
+      { path: '', component: () => import('../views/notice/urgentNotice.vue') },
+      { path: 'urgentNotice', component: () => import('../views/notice/urgentNotice.vue') },
+      { path: 'generalNotice', component: () => import('../views/notice/generalNotice.vue') },
+      { path: 'corporateNotice', component: () => import('../views/notice/corporateNotice.vue') },
+      { path: 'governmentNotice', component: () => import('../views/notice/governmentNotice.vue') }
     ]
   },
   {

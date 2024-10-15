@@ -62,7 +62,7 @@ const handleReturn = () => {
   .layout-content {
     display: flex;
     flex-direction: column;
-    background-color: #ccc;
+    background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
     height: 100%;
     width: 100%;
     .layout-return-button {
@@ -71,7 +71,6 @@ const handleReturn = () => {
       align-items: start;
       gap: 3px;
       border-radius: 3px;
-      background: #ccc;
 
       button {
         display: flex;
@@ -102,7 +101,6 @@ const handleReturn = () => {
     .layout-body {
       display: flex;
       flex-direction: column;
-      // background-color: rgb(128, 128, 224);
       height: 100%;
       width: 100%;
       justify-content: center;
