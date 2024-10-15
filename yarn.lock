@@ -1784,7 +1784,7 @@ electron-updater@^6.1.7:
 
 electron-vite@^2.3.0:
   version "2.3.0"
-  resolved "https://registry.npmmirror.com/electron-vite/-/electron-vite-2.3.0.tgz"
+  resolved "https://registry.npmmirror.com/electron-vite/-/electron-vite-2.3.0.tgz#58de48f9423980d860d2648e59fdbf0f8cd74b8c"
   integrity sha512-lsN2FymgJlp4k6MrcsphGqZQ9fKRdJKasoaiwIrAewN1tapYI/KINLdfEL7n10LuF0pPSNf/IqjzZbB5VINctg==
   dependencies:
     "@babel/core" "^7.24.7"
@@ -3028,15 +3028,7 @@ pdfjs-dist@2.6.347:
   resolved "https://registry.npmmirror.com/pdfjs-dist/-/pdfjs-dist-2.6.347.tgz"
   integrity sha512-QC+h7hG2su9v/nU1wEI3SnpPIrqJODL7GTDFvR74ANKGq1AFJW16PH8VWnhpiTi9YcLSFV9xLeWSgq+ckHLdVQ==
 
-pdfjs-dist@^4.4.168:
-  version "4.7.76"
-  resolved "https://registry.npmmirror.com/pdfjs-dist/-/pdfjs-dist-4.7.76.tgz"
-  integrity sha512-8y6wUgC/Em35IumlGjaJOCm3wV4aY/6sqnIT3fVW/67mXsOZ9HWBn8GDKmJUK0GSzpbmX3gQqwfoFayp78Mtqw==
-  optionalDependencies:
-    canvas "^2.11.2"
-    path2d "^0.2.1"
-
-pdfjs-dist@^4.7.76:
+pdfjs-dist@^4.4.168, pdfjs-dist@^4.7.76:
   version "4.7.76"
   resolved "https://registry.npmmirror.com/pdfjs-dist/-/pdfjs-dist-4.7.76.tgz#abd1df2b94d22b4a467f91b89e33f3b45b60330f"
   integrity sha512-8y6wUgC/Em35IumlGjaJOCm3wV4aY/6sqnIT3fVW/67mXsOZ9HWBn8GDKmJUK0GSzpbmX3gQqwfoFayp78Mtqw==
@@ -3706,7 +3698,7 @@ vue-eslint-parser@^9.3.1, vue-eslint-parser@^9.4.3:
 
 vue-pdf-embed@^2.1.0:
   version "2.1.0"
-  resolved "https://registry.npmmirror.com/vue-pdf-embed/-/vue-pdf-embed-2.1.0.tgz"
+  resolved "https://registry.npmmirror.com/vue-pdf-embed/-/vue-pdf-embed-2.1.0.tgz#736a35adc5f1661613ffcf19ac5f6a18c8fcd129"
   integrity sha512-yEtitm2q1jY2pmgnbwDILhm8cEby01WhfZJCMKvhKwdorwc92FDefIDZ5yf0ixu4t+WHMfc1+Zz4OGsoW/PRag==
   dependencies:
     pdfjs-dist "^4.4.168"

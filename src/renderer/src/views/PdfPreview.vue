@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { defineProps, ref, watch } from 'vue'
-import PDFViewer from '@renderer/components/PdfViewer.vue'
+import PDFViewer from '@renderer/components/PDFViewer.vue'
 import PDFThumbnails from '@renderer/components/PDFThumbnails.vue'
 import { useRouter } from 'vue-router'
 

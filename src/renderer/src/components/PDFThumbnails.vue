@@ -19,6 +19,7 @@
         :stop-at-errors="false"
         :use-system-fonts="false"
         class="thumbnail-pdf"
+        @on-pdf-init="handlePdfInit"
       />
       <div class="page-number">第 {{ pa }} 页</div>
     </div>
@@ -26,37 +27,27 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, onMounted } from 'vue'
+import { defineProps, defineEmits, ref } from 'vue'
+import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 import PDF from 'pdf-vue3'
-import axios from 'axios'
-import * as PDFjsLib from 'pdfjs-dist'
-
-const props = defineProps<{
+defineProps<{
   pdfUrl: string
 }>()
+
+const handlePdfInit = (pdf: PDFDocumentProxy) => {
+  // totalPages.value = pdf.numPages
+  console.log(pdf)
+}
 
 const emits = defineEmits<{
   (e: 'page-selected', page: number): void
 }>()
 
-const totalPages = ref(5) // 实际情况应通过 PDF.js 获取
+const totalPages = ref(1) // 实际情况应通过 PDF.js 获取
 
 const selectPage = (page: number) => {
   emits('page-selected', page)
 }
-
-// 获取 PDF 总页数
-onMounted(async () => {
-  try {
-    const response = await axios.get(props.pdfUrl, { responseType: 'arraybuffer' })
-    const pdfData = new Uint8Array(response.data)
-    const loadingTask = PDFjsLib.getDocument({ data: pdfData })
-    const pdf = await loadingTask.promise
-    totalPages.value = pdf.numPages
-  } catch (error) {
-    console.error('Error fetching PDF:', error)
-  }
-})
 </script>
 
 <style scoped>
@@ -81,6 +72,8 @@ onMounted(async () => {
   width: 100%;
   height: 100px;
   object-fit: contain;
+  border: 1px solid #ddd;
+  margin-bottom: 5px;
 }
 
 .page-number {
