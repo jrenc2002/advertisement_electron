@@ -78,7 +78,7 @@ const updatePage = (page: number) => {
   width: 100%;
   height: 100%;
   flex-direction: row;
-  gap: 10px;
+  // gap: 10px;
   .thumbnails-container {
     width: 240px; /* 调整宽度以适应布局需求 */
     padding: 10px;

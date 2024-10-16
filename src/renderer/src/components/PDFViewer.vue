@@ -48,7 +48,7 @@ const handlePageChange = (page: number) => {
 }
 
 .pdf-viewer :deep(.pdf-vue3-scroller::-webkit-scrollbar-track) {
-  background: #f1f1f1; /* 滚动条轨道背景色 */
+  background: #ccc; /* 滚动条轨道背景色 */
   border-radius: 4px;
 }
 

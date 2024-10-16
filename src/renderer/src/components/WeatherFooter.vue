@@ -60,7 +60,7 @@
         <p v-if="index === 0">Tomorrow</p>
         <p
           v-else
-          class="p-content-right"
+          class="p-content-right-week-temperature"
         >{{ forecast?.week?.slice(0, 3) }}</p>
         <img
           :src="`src/assets/weatherIcons/pic${forecast?.ForecastIcon}.png`"
@@ -69,7 +69,7 @@
         <!-- <p class="p-content">
           {{ getWeatherDetails(forecast?.ForecastIcon || 50) }}
         </p> -->
-        <p class="p-content-right">
+        <p class="p-content-right-week-temperature">
           {{ forecast?.forecastMintemp?.value }}°C~{{ forecast?.forecastMaxtemp?.value }}°C
         </p>
       </div>
@@ -253,7 +253,7 @@ onMounted(() => {
         font-weight: 400;
         line-height: 30px; /* 125% */
       }
-      .p-content-right {
+      .p-content-right-week-temperature {
         color: #fff;
         font-family: 'Adelle Sans Devanagari';
         font-size: 26px;
