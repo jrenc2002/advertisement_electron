@@ -25,13 +25,12 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import PDF from 'pdf-vue3'
-import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 
 interface Props {
   pdfUrl: string
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const currentPage = ref<number>(1)
 const emit = defineEmits<{
@@ -138,7 +137,7 @@ const cleanup = () => {
   })
 }
 
-const handlePdfInit = async (pdf: PDFDocumentProxy) => {
+const handlePdfInit = async (pdf: any) => {
   console.log('PDF Initialized:', pdf)
   await nextTick()
   addPageNumbersAndEvents()

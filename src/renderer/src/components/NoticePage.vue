@@ -180,7 +180,7 @@ const pdfNames = [
             p {
               color: #000;
               font-family: 'Adelle Sans Devanagari';
-              font-size: 32px;
+              font-size: 26px;
               font-style: normal;
               font-weight: 700;
               line-height: 28px; /* 87.5% */
@@ -191,7 +191,7 @@ const pdfNames = [
               font-size: 24px;
               font-style: normal;
               font-weight: 700;
-              line-height: 28px; /* 116.667% */
+              line-height: 16px; /* 116.667% */
             }
           }
 
