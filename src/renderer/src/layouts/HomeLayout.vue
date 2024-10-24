@@ -1,5 +1,5 @@
 <template>
-  <div class="default-layout">
+  <div class="home-layout">
     <AdvertisementTop class="advertisement-top" />
 
     <!-- RouterView 组件用于渲染匹配的组件 -->
@@ -7,10 +7,7 @@
       <div class="layout-content">
         <div class="layout-return-button">
           <button @click="handleReturn">
-            <img
-              src="@renderer/assets/button/button-left.svg"
-              alt=""
-            />
+            <img src="@renderer/assets/button/button-left.svg" alt="" />
             <div>返回</div>
           </button>
         </div>
@@ -26,8 +23,8 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '../components/AdvertisementTop.vue'
-import WeatherFooter from '../components/WeatherFooter.vue'
+import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
+import WeatherFooter from '../components/Footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleReturn = () => {
@@ -38,22 +35,25 @@ const handleReturn = () => {
 
 <style scoped lang="scss">
 /* 添加一些基本样式 */
-.default-layout {
-  min-height: 100vh;
+.home-layout {
+  // min-height: 100vh;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
   .advertisement-top {
-    height: 20%;
+    height: calc(438 / 1920 * 100%);
   }
-  .main {
-    min-height: 60%;
+  .layout {
+    // 占据剩余高度
+    height: calc(100vh - 438 / 1920 * 100% - 214px);
   }
   .weather-footer {
-    height: 20%;
+    height: 214px;
   }
 }
+
 .layout {
   height: 100%;
   width: 100%;
@@ -62,7 +62,6 @@ const handleReturn = () => {
   .layout-content {
     display: flex;
     flex-direction: column;
-    // background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
     background-color: #eee;
     height: 100%;
     width: 100%;

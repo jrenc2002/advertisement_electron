@@ -16,8 +16,8 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '../components/AdvertisementTop.vue'
-import WeatherFooter from '../components/WeatherFooter.vue'
+import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
+import WeatherFooter from '../components/Footer/WeatherFooter.vue'
 </script>
 
 <style scoped lang="scss">

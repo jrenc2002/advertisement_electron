@@ -1,33 +1,23 @@
 <!-- src/renderer/src/views/PdfPreview.vue -->
 <template>
   <div class="pdf-preview">
-    <PDFThumbnails
-      :pdf-url="pdfSource"
-      @page-selected="handlePageSelected"
-    />
+    <PDFThumbnails :pdf-url="pdfSource" @page-selected="handlePageSelected" />
     <div class="pdf-viewer-right">
       <div class="layout-return-button">
         <button @click="handleReturn">
-          <img
-            src="@renderer/assets/button/button-left.svg"
-            alt=""
-          />
+          <img src="@renderer/assets/button/button-left.svg" alt="" />
           <div>返回</div>
         </button>
       </div>
-      <PDFViewer
-        :pdf-url="pdfSource"
-        :current-page="currentPage"
-        @page-change="updatePage"
-      />
+      <PDFViewer :pdf-url="pdfSource" :current-page="currentPage" @page-change="updatePage" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onBeforeMount } from 'vue'
-import PDFViewer from '@renderer/components/PDFViewer.vue'
-import PDFThumbnails from '@renderer/components/PDFThumbnails.vue'
+import PDFViewer from '@renderer/components/PDF/PDFViewer.vue'
+import PDFThumbnails from '@renderer/components/PDF/PDFThumbnails.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

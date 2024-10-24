@@ -1,12 +1,12 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import DefaultLayout from '../layouts/DefaultLayout.vue'
+import HomeLayout from '../layouts/HomeLayout.vue'
 import PDFViewLayout from '../layouts/PDFViewLayout.vue'
 
 // 定义路由的类型
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    component: DefaultLayout,
+    component: HomeLayout,
     children: [
       { path: '', component: () => import('../views/notice/urgentNotice.vue') },
       { path: 'urgentNotice', component: () => import('../views/notice/urgentNotice.vue') },
@@ -18,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/pdfPreview',
     component: PDFViewLayout,
-    children: [{ path: '', component: () => import('../views/PdfPreview.vue') }]
+    children: [{ path: '', component: () => import('../views/PDF/PdfPreview.vue') }]
   }
 ]
 
