@@ -45,21 +45,14 @@
             政府通告
           </div>
         </div>
-        <div
-          v-for="(pdf, index) in pdfSource"
-          :key="index"
-          class="pdf-card-container"
-        >
-          <div class="pdf-card">
+        <div class="pdf-card-container">
+          <div v-for="(pdf, index) in pdfSource" :key="index" class="pdf-card">
             <div class="pdf-card-div">
-              <p>{{ pdfNames[index] }}</p>
-              <div class="pdf-card-date">發布日期： {{ pdfDate[index] }}</div>
+              <p>{{ pdf.name }}</p>
+              <div class="pdf-card-date">發布日期： {{ pdf.date }}</div>
             </div>
 
-            <div
-              class="pdf-card-button-detail"
-              @click="viewPdf(pdf)"
-            >查看详情</div>
+            <div class="pdf-card-button-detail" @click="viewPdf(pdf.url)">查看详情</div>
           </div>
         </div>
       </div>
@@ -73,7 +66,7 @@ import { routerState } from '@renderer/stores/index'
 // 定义组件的 props
 defineProps<{
   title: string
-  pdfSource: string[]
+  pdfSource: { url: string; name: string; date: string }[]
   currentRoute: string
 }>()
 const router = useRouter()
@@ -86,24 +79,6 @@ function goTo(route: string) {
   console.log(useRouterStore().getCurrentRouter)
   router.push(route)
 }
-const pdfDate = [
-  '2024/10/05',
-  '2024/10/05',
-  '2024/10/05',
-  '2024/10/05',
-  '2024/10/05',
-  '2024/10/05',
-  '2024/10/05'
-]
-const pdfNames = [
-  '2024年10月18日管理委員會會議通告',
-  '2024年政府公开目录',
-  '2024年10月18日国务院通告',
-  '2024年10月18日管理委員會會議通告',
-  '2024年10月18日管理委員會會議通告',
-  '2024年10月18日管理委員會會議通告',
-  '2024年10月18日管理委員會會議通告'
-]
 </script>
 <style scoped lang="scss">
 .home {
@@ -116,6 +91,7 @@ const pdfNames = [
     flex-direction: column;
     height: 100%;
     width: 100%;
+    padding: 15px 32px 90px 32px;
     .home-body {
       display: flex;
       flex-direction: column;
@@ -123,7 +99,7 @@ const pdfNames = [
       width: 100%;
       justify-content: center;
       align-items: center;
-      margin-top: 10px;
+      gap: 20px;
       .home-body-title {
         color: #000;
         font-family: 'Adelle Sans Devanagari';
@@ -135,13 +111,14 @@ const pdfNames = [
       }
       .home-body-nav {
         display: flex;
-        flex-direction: row;
-        width: 50%;
-        justify-content: space-between;
+        width: 574px;
+        justify-content: center;
         align-items: center;
+        gap: 32px;
+        height: 72px;
+
+        border-radius: 3px;
         border: 1px solid #ccc;
-        padding: 10px;
-        margin-top: 10px;
         div {
           cursor: pointer;
         }
@@ -149,38 +126,40 @@ const pdfNames = [
       .pdf-card-container {
         display: flex;
         flex-direction: column;
-        height: auto;
-        max-height: 50%;
-        overflow-y: auto;
-        width: 80%;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        border: 1px solid #ccc;
-        margin-top: 10px;
+        width: 100%;
+        max-height: 100%;
+        gap: 20px;
+        overflow-y: scroll;
+
+        /* Hide scrollbar for WebKit browsers */
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Hide scrollbar for Firefox */
+        scrollbar-width: none;
         .pdf-card {
-          height: 100px;
-          width: 100%;
-          border: 1px solid #ccc;
-          color: #000;
-          border-radius: 1px;
-          background: #fff;
-          box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
           display: flex;
-          padding: 30px;
-          flex-direction: row;
+          padding: 32px 48px;
           justify-content: space-between;
           align-items: center;
+          align-self: stretch;
+          background: #fff;
+          box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.2);
+
           cursor: pointer;
           .pdf-card-div {
+            height: 74px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 16px;
 
             p {
               color: #000;
               font-family: 'Adelle Sans Devanagari';
-              font-size: 26px;
+              font-size: 32px;
               font-style: normal;
               font-weight: 700;
               line-height: 28px; /* 87.5% */
@@ -191,7 +170,7 @@ const pdfNames = [
               font-size: 24px;
               font-style: normal;
               font-weight: 700;
-              line-height: 16px; /* 116.667% */
+              line-height: 28px; /* 116.667% */
             }
           }
 
@@ -201,7 +180,7 @@ const pdfNames = [
             font-size: 24px;
             font-style: normal;
             font-weight: 400;
-            line-height: 28px;
+            line-height: 28px; /* 116.667% */
           }
         }
       }

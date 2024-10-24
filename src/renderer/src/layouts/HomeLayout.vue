@@ -55,7 +55,6 @@ const handleReturn = () => {
 }
 
 .layout {
-  height: 100%;
   width: 100%;
   justify-content: center;
   align-items: center;
@@ -69,22 +68,21 @@ const handleReturn = () => {
       display: flex;
       justify-content: start;
       align-items: start;
-      gap: 3px;
-      border-radius: 3px;
+      width: 100%;
+      height: 75px;
+      padding: 16px 20px 0px 20px;
 
       button {
+        width: 128px;
+        height: 59px;
         display: flex;
-        background-color: #fff;
-        flex-direction: row;
-        z-index: 100;
         justify-content: center;
         align-items: center;
-        padding: 3px 4px;
         gap: 3px;
-        border: none;
-        margin-left: 20px;
-        margin-top: 10px;
-
+        align-self: stretch;
+        border-radius: 3px;
+        background: #fff;
+        box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.2);
         cursor: pointer;
         color: #ffa500;
         font-family: 'Adelle Sans Devanagari';
@@ -105,7 +103,6 @@ const handleReturn = () => {
       width: 100%;
       justify-content: center;
       align-items: center;
-      margin-top: 10px;
     }
   }
 }
