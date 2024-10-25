@@ -1,7 +1,5 @@
 <template>
-  <div class="top-advertise">
-    <!-- <img src="../../assets/top/top.png" alt="" /> -->
-  </div>
+  <div class="top-advertise"></div>
 </template>
 <style lang="scss" scoped>
 .top-advertise {

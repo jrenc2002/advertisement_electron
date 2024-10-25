@@ -1,9 +1,7 @@
 <!-- src/renderer/src/components/PDFThumbnails.vue -->
 <template>
-  <div
-    ref="thumbnailsContainer"
-    class="thumbnails-container"
-  >
+  <div ref="thumbnailsContainer" class="thumbnails-container">
+    <!-- <div class="white-space-header"></div> -->
     <PDF
       :src="pdfUrl"
       :page="currentPage"
@@ -54,8 +52,20 @@ const thumbnailsContainer = ref<HTMLElement | null>(null)
  */
 const addPageNumbersAndEvents = () => {
   if (!thumbnailsContainer.value) return
+
   // 获取所有 canvas 元素
   const canvases = thumbnailsContainer.value.querySelectorAll('canvas')
+  if (canvases.length > 0) {
+    // Add a whitespace element above the first canvas
+    const whitespaceHeader = document.createElement('div')
+    Object.assign(whitespaceHeader.style, {
+      width: '100%',
+      height: '22px',
+      background: 'rgba(238, 238, 238, 0.8)'
+    })
+    canvases[0].parentNode?.insertBefore(whitespaceHeader, canvases[0])
+  }
+
   canvases.forEach((canvas, index) => {
     const pageNumber = index + 1
 
@@ -73,12 +83,15 @@ const addPageNumbersAndEvents = () => {
     const p = document.createElement('p')
     p.textContent = ` ${pageNumber} `
     Object.assign(p.style, {
-      textAlign: 'center',
-      marginTop: '5px',
-      fontSize: '14px',
       color: '#555',
-      cursor: 'pointer',
-      marginBottom: '10px'
+      fontFamily: 'Adelle Sans Devanagari',
+      fontSize: '24px',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      lineHeight: '24px',
+      textAlign: 'center',
+      marginTop: '4.25px',
+      marginBottom: '20px'
     })
 
     // 插入 p 元素到 canvas 后面
@@ -159,33 +172,36 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .thumbnails-container {
   display: flex;
   flex-direction: column;
-  height: 60%;
+  height: 100%;
   overflow-y: auto;
-  width: 150px;
   border-right: 1px solid #ddd;
-  padding: 10px;
+  .white-space-header {
+    width: 100%;
+    height: 22px;
+    background: rgba(238, 238, 238, 0.8);
+  }
 }
 
 .thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar) {
-  width: 8px; /* 滚动条宽度 */
+  width: 0px;
 }
 
 .thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar-track) {
-  background: #fff; /* 滚动条轨道背景色 */
+  background: #fff;
   border-radius: 4px;
 }
 
 .thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar-thumb) {
-  background-color: #ccc; /* 滚动条滑块颜色 */
+  background-color: #ccc;
   border-radius: 4px;
-  border: 1px solid #f1f1f1; /* 滚动条滑块边框，模拟轨道间距 */
+  border: 1px solid #f1f1f1;
 }
 
 .thumbnails-container :deep(.pdf-vue3-scroller::-webkit-scrollbar-thumb:hover) {
-  background-color: #555; /* 滚动条滑块悬停颜色 */
+  background-color: #555;
 }
 </style>

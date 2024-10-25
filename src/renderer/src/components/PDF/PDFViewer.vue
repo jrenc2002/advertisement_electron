@@ -4,7 +4,7 @@
     <PDF
       :src="pdfUrl"
       :page="currentPage"
-      :pdf-width="'90%'"
+      :pdf-width="'100%'"
       :show-progress="true"
       :show-page-number="true"
       :show-page-tooltip="true"
@@ -40,11 +40,11 @@ const handlePageChange = (page: number) => {
 <style scoped>
 .pdf-viewer {
   width: 100%;
-  height: 56%;
+  height: 100%;
 }
 
 .pdf-viewer :deep(.pdf-vue3-scroller::-webkit-scrollbar) {
-  width: 8px; /* 滚动条宽度 */
+  width: 0px; /* 滚动条宽度 */
 }
 
 .pdf-viewer :deep(.pdf-vue3-scroller::-webkit-scrollbar-track) {

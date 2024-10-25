@@ -70,8 +70,8 @@ const updatePage = (page: number) => {
   flex-direction: row;
   // gap: 10px;
   .thumbnails-container {
-    width: 240px; /* 调整宽度以适应布局需求 */
-    padding: 10px;
+    width: 200px; /* 调整宽度以适应布局需求 */
+    padding: 0px 28.62px 0px 25.48px;
     border-right: 1px solid #ddd;
   }
 
@@ -80,6 +80,7 @@ const updatePage = (page: number) => {
     flex-direction: column;
     position: relative;
     background-color: #ccc;
+    padding: 0px 32px 39px 32px;
     .layout-return-button {
       position: relative;
       display: flex;
@@ -88,12 +89,10 @@ const updatePage = (page: number) => {
       gap: 3px;
       border-radius: 3px;
       background: #ccc;
+      height: 87px;
+      padding: 16px 0px 12px 1px;
 
       button {
-        top: 10px;
-        left: 20px;
-        margin-left: 5%;
-        margin-top: 10px;
         display: flex;
         background-color: #fff;
         flex-direction: row;
@@ -101,35 +100,41 @@ const updatePage = (page: number) => {
         justify-content: center;
         align-items: center;
         padding: 3px 4px;
+        height: 59px;
+        width: 128px;
         gap: 3px;
         border: none;
         cursor: pointer;
         color: #ffa500;
         font-family: 'Adelle Sans Devanagari';
-        font-size: 16px;
+        font-size: 28px;
         font-style: normal;
         font-weight: 400;
-        line-height: 28px; /* 100% */
-        letter-spacing: 1px;
+        line-height: 28px;
+        letter-spacing: 2.8px;
         border-radius: 3px;
-        border: 1px solid white;
+        background: #fff;
         box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.2);
+        img {
+          width: 24px;
+          height: 24px;
+        }
       }
     }
     .pdf-viewer {
       overflow-y: auto;
       position: relative;
-      top: 10px;
+      height: calc(100% - 87px);
     }
   }
 }
-.pdf-preview :deep(.pdf-vue3-scroller) {
-  height: 60%;
-}
-.pdf-preview :deep(.pdf-vue3-main .thumbnail-pdf) {
-  height: 80%;
-}
-.pdf-preview :deep(.pdf-vue3-container) {
-  height: 80%;
-}
+// .pdf-preview :deep(.pdf-vue3-scroller) {
+//   height: 100%;
+// }
+// .pdf-preview :deep(.pdf-vue3-main .thumbnail-pdf) {
+//   height: 100%;
+// }
+// .pdf-preview :deep(.pdf-vue3-container) {
+//   height: 100%;
+// }
 </style>

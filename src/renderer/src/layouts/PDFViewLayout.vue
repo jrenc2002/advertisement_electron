@@ -1,8 +1,6 @@
 <template>
-  <div class="default-layout">
+  <div class="home-layout">
     <AdvertisementTop class="advertisement-top" />
-
-    <!-- RouterView 组件用于渲染匹配的组件 -->
     <div class="layout">
       <div class="layout-content">
         <div class="layout-body">
@@ -10,7 +8,6 @@
         </div>
       </div>
     </div>
-
     <WeatherFooter class="weather-footer" />
   </div>
 </template>
@@ -18,50 +15,48 @@
 <script setup>
 import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
 import WeatherFooter from '../components/Footer/WeatherFooter.vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const handleReturn = () => {
+  router.push('/PdfPreview')
+  console.log(router.currentRoute.value.path)
+}
 </script>
-
 <style scoped lang="scss">
-/* 添加一些基本样式 */
-.default-layout {
-  min-height: 100vh;
+.home-layout {
+  // min-height: 100vh;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
   .advertisement-top {
-    height: 20%;
+    height: calc(438 / 1920 * 100%);
   }
-  .main {
-    min-height: 60%;
+  .layout {
+    height: calc(100vh - 438 / 1920 * 100% - 214px);
   }
   .weather-footer {
-    position: fixed;
-    bottom: 0;
-    height: 20%;
+    height: 214px;
   }
 }
 .layout {
-  height: 100%;
   width: 100%;
   justify-content: center;
   align-items: center;
   .layout-content {
     display: flex;
     flex-direction: column;
-
-    // background: linear-gradient(358.97deg, #f6f4f2 -12.36%, #ddb849 189.94%);
-    background-color: #fff;
+    background-color: #eee;
     height: 100%;
     width: 100%;
     .layout-body {
       display: flex;
       flex-direction: column;
-      // background-color: rgb(128, 128, 224);
       height: 100%;
       width: 100%;
       justify-content: center;
       align-items: center;
-      margin-top: 10px;
     }
   }
 }

@@ -31,10 +31,7 @@
             :src="`src/assets/weatherIcons/pic${weatherData_today?.icon[0]}.png`"
             :alt="`pic${weatherData_today?.icon[0]}`"
           /> -->
-          <img
-            :src="getWeatherIcon(weatherData_today?.icon[0] || 50)"
-            alt=""
-          />
+          <img :src="getWeatherIcon(weatherData_today?.icon[0] || 50)" alt="" />
           <!-- Display temperature for "九龙城" -->
           <p class="p-content">
             {{
@@ -46,10 +43,7 @@
           {{ getWeatherDetails(weatherData_today?.icon[0] || 50) }}
         </p> -->
 
-        <div
-          v-for="(warning, key) in weatherData_warning"
-          :key="key"
-        >
+        <div v-for="(warning, key) in weatherData_warning" :key="key">
           <p class="p-content">{{ warning.name }}</p>
         </div>
       </div>
@@ -62,18 +56,12 @@
       >
         <!-- 这换成月份和日,不需要年份 -->
         <p v-if="index === 0">Tomorrow</p>
-        <p
-          v-else
-          class="p-content-right-week-temperature"
-        >{{ forecast?.week?.slice(0, 3) }}</p>
+        <p v-else class="p-content-right-week-temperature">{{ forecast?.week?.slice(0, 3) }}</p>
         <!-- <img
           :src="`src/assets/weatherIcons/pic${forecast?.ForecastIcon}.png`"
           :alt="`pic${forecast?.ForecastIcon}`"
         /> -->
-        <img
-          :src="getWeatherIcon(forecast?.ForecastIcon || 50)"
-          alt=""
-        />
+        <img :src="getWeatherIcon(forecast?.ForecastIcon || 50)" alt="" />
         <!-- <p class="p-content">
           {{ getWeatherDetails(forecast?.ForecastIcon || 50) }}
         </p> -->
@@ -187,7 +175,6 @@ const getWeatherIcon = (icon: number) => {
   }
 }
 // import { getWeatherDetails } from '@renderer/data/iconIds'
-
 interface WeatherData_forecast {
   weatherForecast?: {
     forecastDate?: string
@@ -209,19 +196,16 @@ interface RainfallItem {
   max: number
   main: string
 }
-
 interface TemperatureItem {
   place: string
   value: number
   unit: string
 }
-
 interface HumidityItem {
   unit: string
   value: number
   place: string
 }
-
 interface WeatherData_today {
   rainfall: {
     data: RainfallItem[]
@@ -320,21 +304,20 @@ onMounted(() => {
     height: 60px;
     color: #fff;
     filter: brightness(0) invert(1); /* 设置 SVG 图标的颜色 */
+    filter: drop-shadow(0 0 1px #fff) brightness(0) invert(1);
   }
   .weather-footer-left {
     width: 24%;
     display: flex;
-    justify-content: row;
     flex-direction: column;
-    column-gap: 10px;
-    gap: 10px;
     justify-content: center;
+    align-items: center;
     .weather-footer-left-item {
       display: flex;
       flex-direction: column;
       align-items: center; // 确保子元素水平居中
       justify-content: center; // 确保子元素垂直居中
-      gap: 10px;
+      gap: 4px;
       width: 100%; // 占满父容器的宽度
       .div-today {
         display: flex;
@@ -342,6 +325,7 @@ onMounted(() => {
         align-items: end;
         justify-content: end;
       }
+
       .p-title {
         color: #fff;
         font-family: 'Adelle Sans Devanagari';
