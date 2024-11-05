@@ -16,11 +16,6 @@ const pdfSource = [
     url: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
     name: '2023年政府公开目录',
     date: '2023-01-01'
-  },
-  {
-    url: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
-    name: '2022年政府公开目录',
-    date: '2022-01-01'
   }
 ]
 </script>

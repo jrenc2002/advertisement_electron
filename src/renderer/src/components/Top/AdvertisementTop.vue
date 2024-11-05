@@ -12,6 +12,6 @@
   align-self: stretch;
   background: url('../../assets/top/top.png') lightgray no-repeat;
   background-size: cover;
-  background-position: -60px center;
+  background-position: center;
 }
 </style>

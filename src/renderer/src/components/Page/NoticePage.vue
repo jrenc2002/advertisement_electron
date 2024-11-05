@@ -97,7 +97,7 @@ function goTo(route: string) {
       flex-direction: column;
       height: 100%;
       width: 100%;
-      justify-content: center;
+      // justify-content: center;
       align-items: center;
       gap: 20px;
       .home-body-title {
@@ -108,6 +108,7 @@ function goTo(route: string) {
         font-weight: 700;
         line-height: 44px;
         letter-spacing: 4.8px;
+        height: 44px;
       }
       .home-body-nav {
         display: flex;
@@ -127,7 +128,8 @@ function goTo(route: string) {
         display: flex;
         flex-direction: column;
         width: 100%;
-        max-height: 100%;
+        // max-height: 100%;
+        height: 575px;
         gap: 20px;
         overflow-y: scroll;
 
