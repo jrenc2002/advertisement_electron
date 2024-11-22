@@ -8,7 +8,7 @@
         <div class="layout-return-button">
           <button @click="handleReturn">
             <img src="@renderer/assets/button/button-left.svg" alt="" />
-            <div>返回</div>
+            <div>设置</div>
           </button>
         </div>
 
@@ -28,7 +28,7 @@ import WeatherFooter from '../components/Footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleReturn = () => {
-  router.push('/PdfPreview')
+  router.push('/setting')
   console.log(router.currentRoute.value.path)
 }
 </script>

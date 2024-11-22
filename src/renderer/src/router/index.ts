@@ -12,7 +12,8 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'urgentNotice', component: () => import('../views/notice/urgentNotice.vue') },
       { path: 'generalNotice', component: () => import('../views/notice/generalNotice.vue') },
       { path: 'corporateNotice', component: () => import('../views/notice/corporateNotice.vue') },
-      { path: 'governmentNotice', component: () => import('../views/notice/governmentNotice.vue') }
+      { path: 'governmentNotice', component: () => import('../views/notice/governmentNotice.vue') },
+      { path: 'setting', component: () => import('../views/setting/setting.vue') }
     ]
   },
   {

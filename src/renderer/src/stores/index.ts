@@ -23,3 +23,20 @@ export const useRouterStore = defineStore('router', {
   }
   //persist: true,//是否开启持久化存储
 })
+
+export const adsStore = defineStore('ads', {
+  state: () => {
+    return {
+      ads: [] as any[]
+    }
+  },
+  getters: {
+    getAds: (state) => state.ads
+  },
+  actions: {
+    setAds(ads: any[]) {
+      this.ads = ads
+    }
+  },
+  persist: true
+})
