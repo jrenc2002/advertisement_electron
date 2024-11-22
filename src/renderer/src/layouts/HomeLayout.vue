@@ -26,11 +26,49 @@
 import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
 import WeatherFooter from '../components/Footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
+import { getNotices } from '../utils/apis/notice/notice'
+import { noticeStore } from '../stores/notice_store'
+import { onBeforeMount } from 'vue'
+import { buildingStore } from '../stores/building_store'
+
 const router = useRouter()
+
 const handleReturn = () => {
-  router.push('/setting')
+  // 判断当前路由是不是 /setting
+  if (router.currentRoute.value.path === '/setting') {
+    router.go(-1)
+  } else {
+    router.push('/setting')
+  }
   console.log(router.currentRoute.value.path)
 }
+
+const fetch = async () => {
+  const blg_id = buildingStore().getBuilding.blg_id
+  console.log(blg_id)
+
+  try {
+    const res = await getNotices({ blg_id })
+    console.log(res.data)
+
+    // 筛选出 common 类型的通知
+    const commonNotices = res.data.filter((notice) => notice.mess_type === 'common')
+    // 筛选出 adv 类型的通知
+    const advNotices = res.data.filter((notice) => notice.mess_type === 'adv')
+
+    // 将筛选后的数据存储到对应的 store 中
+    noticeStore().setNotices_common(commonNotices)
+    noticeStore().setNotices_adv(advNotices)
+    console.log(noticeStore().getNotices_common)
+    console.log(noticeStore().getNotices_adv)
+  } catch (error) {
+    console.error('获取通知失败:', error)
+  }
+}
+
+onBeforeMount(() => {
+  fetch()
+})
 </script>
 
 <style scoped lang="scss">

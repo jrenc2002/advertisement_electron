@@ -48,11 +48,11 @@
         <div class="pdf-card-container">
           <div v-for="(pdf, index) in pdfSource" :key="index" class="pdf-card">
             <div class="pdf-card-div">
-              <p>{{ pdf.name }}</p>
-              <div class="pdf-card-date">發布日期： {{ pdf.date }}</div>
+              <p>{{ pdf.mess_title }}</p>
+              <!-- <div class="pdf-card-date">發布日期： {{ pdf.date }}</div> -->
             </div>
 
-            <div class="pdf-card-button-detail" @click="viewPdf(pdf.url)">查看详情</div>
+            <div class="pdf-card-button-detail" @click="viewPdf(pdf.mess_file)">查看详情</div>
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@ import { routerState } from '@renderer/stores/index'
 // 定义组件的 props
 defineProps<{
   title: string
-  pdfSource: { url: string; name: string; date: string }[]
+  pdfSource: { id: number; mess_title: string; mess_type: string; mess_file: string }[]
   currentRoute: string
 }>()
 const router = useRouter()

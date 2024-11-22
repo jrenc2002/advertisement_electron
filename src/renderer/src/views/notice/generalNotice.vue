@@ -5,17 +5,15 @@
 
 <script setup lang="ts">
 import NoticePage from '@renderer/components/Page/NoticePage.vue'
+import { noticeStore } from '@renderer/stores/notice_store'
+import { onMounted, ref } from 'vue'
 
-const pdfSource = [
-  {
-    url: 'https://data.weather.gov.hk/weatherAPI/doc/HKO_Open_Data_API_Documentation_tc.pdf',
-    name: '香港天文台',
-    date: '2024-01-01'
-  },
-  {
-    url: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
-    name: '2023年政府公开目录',
-    date: '2023-01-01'
-  }
-]
+const pdfSource = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string }[]>(
+  []
+)
+
+onMounted(() => {
+  console.log(noticeStore().getNotices_common)
+  pdfSource.value = noticeStore().getNotices_common
+})
 </script>

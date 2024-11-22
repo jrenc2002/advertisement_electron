@@ -47,7 +47,7 @@ import { getBuildings } from '../../utils/apis/building/buildings'
 import { getBuildingById } from '../../utils/apis/building/buildings'
 import { login } from '../../utils/apis/auth/auth'
 import { adsStore } from '../../stores'
-
+import { buildingStore } from '../../stores/building_store'
 type PageData = {
   pageNum: number
   pageSize: number
@@ -105,6 +105,8 @@ const fetchAds = async () => {
     try {
       const res = await getBuildingById(buildingId)
       // 使用 filter 只保留状态为 'active' 的广告
+      buildingStore().setBuilding(res.data)
+      console.log(buildingStore().getBuilding)
       ads.value = res.data.advertisements_buildings.filter(
         (ad: any) => ad.Advertisement.status === 'active'
       )

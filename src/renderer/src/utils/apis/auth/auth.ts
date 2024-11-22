@@ -1,5 +1,5 @@
-import http from '../../request'
+import http from '../../advertisement'
 
 export const login = (data: any) => {
-  return http.post('/admin/login', data)
+  return http.post('/api/admin/login', data)
 }

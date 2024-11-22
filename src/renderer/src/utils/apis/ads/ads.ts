@@ -1,4 +1,4 @@
-import http from '../../request'
+import http from '../../advertisement'
 
 export const getAds = () => {
   return http.get('/ads')
