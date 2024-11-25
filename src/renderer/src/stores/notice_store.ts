@@ -5,6 +5,7 @@ export interface Notice {
   mess_title: string
   mess_type: string
   mess_file: string
+  path?: string
 }
 // {
 //   "id": 771,
@@ -16,13 +17,21 @@ export interface Notice {
 export const noticeStore = defineStore('notice', {
   state: () => {
     return {
+      notices: [] as Notice[],
       notices_common: [] as Notice[],
-      notices_adv: [] as Notice[]
+      notices_adv: [] as Notice[],
+      //TODO: 添加其他通知类型
+
+      notices_hasDownload_common: [] as Notice[],
+      notices_hasDownload_adv: [] as Notice[]
     }
   },
   getters: {
     getNotices_common: (state) => state.notices_common,
-    getNotices_adv: (state) => state.notices_adv
+    getNotices_adv: (state) => state.notices_adv,
+    getAllNotices: (state) => state.notices,
+    getNotices_hasDownload_common: (state) => state.notices_hasDownload_common,
+    getNotices_hasDownload_adv: (state) => state.notices_hasDownload_adv
   },
   actions: {
     setNotices_common(notices: Notice[]) {
@@ -30,6 +39,27 @@ export const noticeStore = defineStore('notice', {
     },
     setNotices_adv(notices: Notice[]) {
       this.notices_adv = notices
+    },
+    setNotices(notices: Notice[]) {
+      this.notices = notices
+    },
+    setNotices_hasDownload_common(notices: Notice[]) {
+      this.notices_hasDownload_common = notices
+    },
+    setNotices_hasDownload_adv(notices: Notice[]) {
+      this.notices_hasDownload_adv = notices
+    },
+    addNotices_hasDownload_common(notice: Notice) {
+      if (this.notices_hasDownload_common.find((item) => item.id === notice.id)) {
+        return
+      }
+      this.notices_hasDownload_common.push(notice)
+    },
+    addNotices_hasDownload_adv(notice: Notice) {
+      if (this.notices_hasDownload_adv.find((item) => item.id === notice.id)) {
+        return
+      }
+      this.notices_hasDownload_adv.push(notice)
     }
   },
   persist: true

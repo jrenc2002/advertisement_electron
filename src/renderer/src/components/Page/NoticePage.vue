@@ -52,7 +52,7 @@
               <!-- <div class="pdf-card-date">發布日期： {{ pdf.date }}</div> -->
             </div>
 
-            <div class="pdf-card-button-detail" @click="viewPdf(pdf.mess_file)">查看详情</div>
+            <div class="pdf-card-button-detail" @click="viewPdf(pdf)">查看详情</div>
           </div>
         </div>
       </div>
@@ -63,6 +63,7 @@
 import { useRouter } from 'vue-router'
 import { useRouterStore } from '@renderer/stores/index'
 import { routerState } from '@renderer/stores/index'
+import { noticeStore } from '@renderer/stores/notice_store'
 // 定义组件的 props
 defineProps<{
   title: string
@@ -70,9 +71,38 @@ defineProps<{
   currentRoute: string
 }>()
 const router = useRouter()
-function viewPdf(pdf: string) {
-  router.push({ path: '/pdfPreview', query: { pdfSource: pdf } })
-  console.log(pdf)
+//TODO:添加其他两种类型的pdf
+function viewPdf(pdf: any) {
+  console.log('pdf', pdf)
+  if (pdf.mess_type === 'common') {
+    console.log('common')
+    if (noticeStore().getNotices_hasDownload_common.find((item) => item.id === pdf.id)) {
+      const pdfs = noticeStore().getNotices_hasDownload_common.find(
+        (item) => item.id === pdf.id
+      )?.path
+      if (pdfs) {
+        router.push({
+          path: '/pdfPreview',
+          query: {
+            pdfSource: pdfs
+          }
+        })
+      }
+    }
+  } else if (pdf.mess_type === 'adv') {
+    console.log('adv')
+    if (noticeStore().getNotices_hasDownload_adv.find((item) => item.id === pdf.id)) {
+      const pdfs = noticeStore().getNotices_hasDownload_adv.find((item) => item.id === pdf.id)
+      if (pdfs) {
+        console.log('tiaozhuanlianjie', pdfs)
+        router.push({ path: '/pdfPreview', query: { pdfSource: pdfs.path } })
+        console.log(pdfs.path)
+      }
+    }
+  } else {
+    console.log('没有下载')
+    router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
+  }
 }
 function goTo(route: string) {
   useRouterStore().setCurrentRouter(route as routerState)

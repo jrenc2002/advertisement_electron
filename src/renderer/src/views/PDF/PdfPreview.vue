@@ -23,7 +23,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleReturn = () => {
   router.go(-1)
-  console.log(router.currentRoute.value.path)
+  console.log('router.currentRoute.value.path', router.currentRoute.value.path)
 }
 const pdfSource = ref('')
 // 定义组件接收的 props

@@ -2,6 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import axios from 'axios'
+import fs from 'fs'
+import path from 'path'
 
 function createWindow(): void {
   // Create the browser window.
@@ -68,6 +71,27 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+// IPC 监听下载pdf请求
+ipcMain.handle('download-pdf', async (event, { PathName, url, filename }) => {
+  try {
+    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const projectRoot = path.resolve(__dirname, '../../')
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'pdf', PathName)
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true })
+    }
+    const fileExists = fs.existsSync(path.join(saveDir, filename))
+    if (fileExists) {
+      return { success: false, error: '文件已存在' }
+    }
+    const filePath = path.join(saveDir, filename)
+    fs.writeFileSync(filePath, response.data)
+    return { success: true, path: filePath }
+  } catch (error: any) {
+    console.error(`下载 PDF "${filename}" 失败:`, error)
+    return { success: false, error: error.message }
   }
 })
 
