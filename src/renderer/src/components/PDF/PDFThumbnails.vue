@@ -9,6 +9,7 @@
       :show-progress="true"
       :show-page-number="true"
       :show-page-tooltip="true"
+      :with-credentials="true"
       :show-back-to-top-btn="false"
       :scroll-threshold="0"
       :use-system-fonts="false"

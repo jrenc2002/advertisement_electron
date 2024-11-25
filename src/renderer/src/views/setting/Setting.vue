@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { getBuildings } from '../../utils/apis/building/buildings'
 import { getBuildingById } from '../../utils/apis/building/buildings'
 import { login } from '../../utils/apis/auth/auth'
@@ -75,11 +75,11 @@ const fetchBuildings = async () => {
     buildingOptions.value = buildings.value.map(
       (building) => `${building.ID} title: ${building.name} address: ${building.address}`
     )
-    console.log(buildingOptions.value)
+    // console.log(buildingOptions.value)
   })
 }
 watch(selectedBuilding, () => {
-  console.log(selectedBuilding.value)
+  // console.log(selectedBuilding.value)
 })
 
 // Handle login
@@ -87,9 +87,9 @@ const handleLogin = async () => {
   // Implement your login logic here
   await login(loginData.value)
     .then((res) => {
-      console.log(res.data.token)
+      // console.log(res.data.token)
       localStorage.setItem('token', res.data.token)
-      console.log(localStorage.getItem('token'))
+      // console.log(localStorage.getItem('token'))
       fetchBuildings()
     })
     .catch((err) => {
@@ -106,11 +106,11 @@ const fetchAds = async () => {
       const res = await getBuildingById(buildingId)
       // 使用 filter 只保留状态为 'active' 的广告
       buildingStore().setBuilding(res.data)
-      console.log(buildingStore().getBuilding)
+      // console.log(buildingStore().getBuilding)
       ads.value = res.data.advertisements_buildings.filter(
         (ad: any) => ad.Advertisement.status === 'active'
       )
-      console.log('过滤后的广告列表:', ads.value)
+      // console.log('过滤后的广告列表:', ads.value)
       adsStore().setAds(ads.value)
     } catch (error) {
       console.error('获取广告列表失败:', error)

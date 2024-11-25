@@ -40,16 +40,16 @@ const handleReturn = () => {
   } else {
     router.push('/setting')
   }
-  console.log(router.currentRoute.value.path)
+  // console.log(router.currentRoute.value.path)
 }
 
 const fetch = async () => {
   const blg_id = buildingStore().getBuilding.blg_id
-  console.log(blg_id)
+  // console.log(blg_id)
 
   try {
     const res = await getNotices({ blg_id })
-    console.log(res.data)
+    // console.log(res.data)
 
     // 筛选出 common 类型的通知
     const commonNotices = res.data.filter((notice) => notice.mess_type === 'common')
@@ -59,8 +59,8 @@ const fetch = async () => {
     // 将筛选后的数据存储到对应的 store 中
     noticeStore().setNotices_common(commonNotices)
     noticeStore().setNotices_adv(advNotices)
-    console.log(noticeStore().getNotices_common)
-    console.log(noticeStore().getNotices_adv)
+    // console.log(noticeStore().getNotices_common)
+    // console.log(noticeStore().getNotices_adv)
   } catch (error) {
     console.error('获取通知失败:', error)
   }

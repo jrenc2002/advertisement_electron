@@ -257,7 +257,7 @@ onMounted(() => {
     .get('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en  ')
     .then((response) => {
       weatherData_forecast.value = response.data
-      console.log(weatherData_forecast.value)
+      // console.log(weatherData_forecast.value)
     })
     .catch((error) => {
       console.error('请求未来天气失败:', error)
@@ -267,7 +267,7 @@ onMounted(() => {
     .get('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=sc')
     .then((response) => {
       weatherData_today.value = response.data
-      console.log(weatherData_today.value)
+      // console.log(weatherData_today.value)
     })
     .catch((error) => {
       console.error('请求今日天气失败:', error)
@@ -276,7 +276,7 @@ onMounted(() => {
     .get('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=sc')
     .then((response) => {
       weatherData_today_detail.value = response.data
-      console.log(weatherData_today_detail.value)
+      // console.log(weatherData_today_detail.value)
     })
     .catch((error) => {
       console.error('请求今日天气详情失败:', error)
@@ -285,7 +285,7 @@ onMounted(() => {
     .get('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=sc')
     .then((response) => {
       weatherData_warning.value = response.data
-      console.log(weatherData_warning.value)
+      // console.log(weatherData_warning.value)
     })
 })
 </script>

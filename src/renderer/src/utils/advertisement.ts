@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 const baseURL = 'http://localhost:8080'
 const http: AxiosInstance = axios.create({
   baseURL,
