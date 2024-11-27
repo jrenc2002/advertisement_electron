@@ -121,110 +121,6 @@ const fetchAds = async () => {
     ads.value = []
   }
 }
-const downloadImage = async (image, PathName) => {
-  try {
-    const response = await axios.get(image.mess_file, {
-      responseType: 'blob'
-    })
-    const blob = new Blob([response.data], { type: 'image/jpeg' }) // 根据实际图片类型修改 MIME 类型
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    const filename = image.id + '.jpg' // 根据实际图片格式修改扩展名
-    const result = await window.api.downloadImage(PathName, image.mess_file, filename)
-
-    if (result.success) {
-      switch (PathName) {
-        case 'common':
-          noticeStore().addNotices_hasDownload_common({ ...image, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_common)
-          break
-        case 'adv':
-          noticeStore().addNotices_hasDownload_adv({ ...image, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_adv)
-          break
-      }
-      console.log(`图片 "${image.mess_title}" 存储成功 at ${result.path}`)
-    } else {
-      console.error(`下载图片 "${image.mess_title}" 失败: ${result.error}`)
-    }
-  } catch (error) {
-    console.error(`下载图片 ${image.mess_title} 失败:`, error)
-  }
-}
-
-const downloadAllImages = async () => {
-  const allCommonImages = noticeStore().getNotices_common
-  const allAdvImages = noticeStore().getNotices_adv
-  for (const image of allCommonImages) {
-    if (noticeStore().getNotices_hasDownload_common.find((item) => item.id === image.id)) {
-      continue
-    }
-    if (image.mess_file) {
-      await downloadImage(image, 'common')
-    }
-  }
-  for (const image of allAdvImages) {
-    if (noticeStore().getNotices_hasDownload_adv.find((item) => item.id === image.id)) {
-      continue
-    }
-    if (image.mess_file) {
-      await downloadImage(image, 'adv')
-    }
-  }
-}
-
-// 新增下载视频的方法
-const downloadVideo = async (video, PathName) => {
-  try {
-    const response = await axios.get(video.mess_file, {
-      responseType: 'blob'
-    })
-    const blob = new Blob([response.data], { type: 'video/mp4' }) // 根据实际视频类型修改 MIME 类型
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    const filename = video.id + '.mp4' // 根据实际视频格式修改扩展名
-    const result = await window.api.downloadVideo(PathName, video.mess_file, filename)
-
-    if (result.success) {
-      switch (PathName) {
-        case 'common':
-          noticeStore().addNotices_hasDownload_common({ ...video, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_common)
-          break
-        case 'adv':
-          noticeStore().addNotices_hasDownload_adv({ ...video, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_adv)
-          break
-      }
-      console.log(`视频 "${video.mess_title}" 存储成功 at ${result.path}`)
-    } else {
-      console.error(`下载视频 "${video.mess_title}" 失败: ${result.error}`)
-    }
-  } catch (error) {
-    console.error(`下载视频 ${video.mess_title} 失败:`, error)
-  }
-}
-
-const downloadAllVideos = async () => {
-  const allCommonVideos = noticeStore().getNotices_common
-  const allAdvVideos = noticeStore().getNotices_adv
-  for (const video of allCommonVideos) {
-    if (noticeStore().getNotices_hasDownload_common.find((item) => item.id === video.id)) {
-      continue
-    }
-    if (video.mess_file) {
-      await downloadVideo(video, 'common')
-    }
-  }
-  for (const video of allAdvVideos) {
-    if (noticeStore().getNotices_hasDownload_adv.find((item) => item.id === video.id)) {
-      continue
-    }
-    if (video.mess_file) {
-      await downloadVideo(video, 'adv')
-    }
-  }
-}
 
 onMounted(() => {
   fetchBuildings()
@@ -236,6 +132,7 @@ onMounted(() => {
   padding: 200px;
   width: 100%;
   height: 100%;
+  background: #fff;
   color: #000;
 }
 

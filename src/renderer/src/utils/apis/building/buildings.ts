@@ -7,3 +7,7 @@ export const getBuildings = (data: any) => {
 export const getBuildingById = (id: string) => {
   return http.get(`api/buildings/${id}`)
 }
+
+export const loginBuilding = (data: any) => {
+  return http.post('api/building_admin/login', data)
+}

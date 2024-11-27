@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
+import { pipeline } from 'stream/promises'
 
 function createWindow(): void {
   // Create the browser window.
@@ -84,13 +85,13 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
     }
     const fileExists = fs.existsSync(path.join(saveDir, filename))
     if (fileExists) {
-      return { success: false, error: '文件已存在' }
+      return { success: false, error: 'file exists' }
     }
     const filePath = path.join(saveDir, filename)
     fs.writeFileSync(filePath, response.data)
     return { success: true, path: filePath }
   } catch (error: any) {
-    console.error(`下载 PDF "${filename}" 失败:`, error)
+    console.error(`download pdf "${filename}" failed:`, error)
     return { success: false, error: error.message }
   }
 })
@@ -99,43 +100,102 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
 ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const contentType = response.headers['content-type']
+
+    // 允许的视频类型
+    const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/avi', 'video/mkv']
+
+    if (!allowedVideoTypes.includes(contentType)) {
+      return { success: false, error: `unsupported video type: ${contentType}` }
+    }
+
+    // 根据 Content-Type 确定扩展名
+    const extension = contentType.split('/').pop()
+    const validatedFilename = `${path.parse(filename).name}.${extension}`
+
     const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'video', PathName)
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'ads', PathName)
+
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true })
     }
-    const fileExists = fs.existsSync(path.join(saveDir, filename))
-    if (fileExists) {
-      return { success: false, error: '文件已存在' }
+
+    const filePath = path.join(saveDir, validatedFilename)
+
+    // if file exists, return the path
+    if (fs.existsSync(filePath)) {
+      return { success: true, path: filePath }
     }
-    const filePath = path.join(saveDir, filename)
+
     fs.writeFileSync(filePath, response.data)
     return { success: true, path: filePath }
   } catch (error: any) {
-    console.error(`下载视频 "${filename}" 失败:`, error)
+    console.error(`download video "${filename}" failed:`, error)
     return { success: false, error: error.message }
   }
 })
 
-// 监听 下载图片请求
+// 清理文件名函数
+const sanitizeFilename = (filename: string): string => {
+  return filename.replace(/[^a-zA-Z0-9_\-.]/g, '_')
+}
+
+// 监听下载图片请求
 ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => {
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const response = await axios.get(url, { responseType: 'stream', timeout: 10000 })
+    let contentType = response.headers['content-type']
+
+    if (contentType.includes(';')) {
+      contentType = contentType.split(';')[0].trim()
+    }
+
+    const allowedImageTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/bmp',
+      'image/webp',
+      'image/jpg',
+      'image/svg+xml'
+    ]
+
+    if (!allowedImageTypes.includes(contentType)) {
+      console.error(`unsupported image type: ${contentType}`) // 错误日志
+      return { success: false, error: `unsupported image type: ${contentType}` }
+    }
+
+    // 根据 Content-Type 确定扩展名
+    const extension = contentType.split('/').pop()
+    const sanitizedFilename = sanitizeFilename(filename)
+    const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
+
     const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'images', PathName)
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'ads', PathName)
+
+    console.log(`image will be saved to: ${saveDir}`) // 日志输出保存目录
+
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true })
+      console.log(`create directory: ${saveDir}`) // 日志输出
     }
-    const fileExists = fs.existsSync(path.join(saveDir, filename))
-    if (fileExists) {
-      return { success: false, error: '文件已存在' }
+
+    const filePath = path.join(saveDir, validatedFilename)
+
+    console.log(`save path: ${filePath}`) // 日志输出保存路径
+
+    // if file exists, return the path
+    if (fs.existsSync(filePath)) {
+      console.error(`file exists: ${filePath}`)
+      return { success: true, path: filePath }
     }
-    const filePath = path.join(saveDir, filename)
-    fs.writeFileSync(filePath, response.data)
+
+    await pipeline(response.data, fs.createWriteStream(filePath))
+    console.log(`image ${validatedFilename} download success, path: ${filePath}`) // 成功日志
     return { success: true, path: filePath }
   } catch (error: any) {
-    console.error(`下载图片 "${filename}" 失败:`, error)
-    return { success: false, error: error.message }
+    console.error(`download image "${filename}" failed:`, error)
+    return { success: false, error: error.message || 'unknown error' }
   }
 })
 

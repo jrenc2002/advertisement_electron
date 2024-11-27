@@ -129,7 +129,10 @@ const showVideo = (playTime: number) => {
         .catch((err) => {
           // 播放视频失败，切换广告
           console.error('视频播放失败:', err)
-          nextAd()
+          // wait 1s 后切换广告
+          setTimeout(() => {
+            nextAd()
+          }, 10000)
         })
     }
 
