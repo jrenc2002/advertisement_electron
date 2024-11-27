@@ -3,8 +3,14 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  downloadPDF: (PathName: string, url: string, filename: string) => {
-    return ipcRenderer.invoke('download-pdf', { PathName, url, filename })
+  download: (PathName: string, url: string, filename: string) => {
+    return ipcRenderer.invoke('download', { PathName, url, filename })
+  },
+  downloadVideo: (PathName: string, url: string, filename: string) => {
+    return ipcRenderer.invoke('download-video', { PathName, url, filename })
+  },
+  downloadImage: (PathName: string, url: string, filename: string) => {
+    return ipcRenderer.invoke('download-image', { PathName, url, filename })
   }
 }
 

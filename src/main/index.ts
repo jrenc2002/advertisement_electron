@@ -74,7 +74,7 @@ app.on('window-all-closed', () => {
   }
 })
 // IPC 监听下载pdf请求
-ipcMain.handle('download-pdf', async (event, { PathName, url, filename }) => {
+ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' })
     const projectRoot = path.resolve(__dirname, '../../')
@@ -91,6 +91,50 @@ ipcMain.handle('download-pdf', async (event, { PathName, url, filename }) => {
     return { success: true, path: filePath }
   } catch (error: any) {
     console.error(`下载 PDF "${filename}" 失败:`, error)
+    return { success: false, error: error.message }
+  }
+})
+
+// 监听 下载视频请求
+ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
+  try {
+    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const projectRoot = path.resolve(__dirname, '../../')
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'video', PathName)
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true })
+    }
+    const fileExists = fs.existsSync(path.join(saveDir, filename))
+    if (fileExists) {
+      return { success: false, error: '文件已存在' }
+    }
+    const filePath = path.join(saveDir, filename)
+    fs.writeFileSync(filePath, response.data)
+    return { success: true, path: filePath }
+  } catch (error: any) {
+    console.error(`下载视频 "${filename}" 失败:`, error)
+    return { success: false, error: error.message }
+  }
+})
+
+// 监听 下载图片请求
+ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => {
+  try {
+    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    const projectRoot = path.resolve(__dirname, '../../')
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'images', PathName)
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true })
+    }
+    const fileExists = fs.existsSync(path.join(saveDir, filename))
+    if (fileExists) {
+      return { success: false, error: '文件已存在' }
+    }
+    const filePath = path.join(saveDir, filename)
+    fs.writeFileSync(filePath, response.data)
+    return { success: true, path: filePath }
+  } catch (error: any) {
+    console.error(`下载图片 "${filename}" 失败:`, error)
     return { success: false, error: error.message }
   }
 })

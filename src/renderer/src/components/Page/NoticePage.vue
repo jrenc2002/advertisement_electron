@@ -61,8 +61,8 @@
 </template>
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useRouterStore } from '@renderer/stores/index'
-import { routerState } from '@renderer/stores/index'
+import { useRouterStore } from '@renderer/stores/nav_store'
+import { routerState } from '@renderer/stores/nav_store'
 import { noticeStore } from '@renderer/stores/notice_store'
 // 定义组件的 props
 defineProps<{

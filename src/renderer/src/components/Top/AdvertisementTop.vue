@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { adsStore } from '../../stores'
+import { adsStore } from '@renderer/stores/ads_store'
 
 // 从 Pinia store 中获取广告列表
 const ads = computed(() => adsStore().getAds)
