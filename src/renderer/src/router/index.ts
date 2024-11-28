@@ -13,7 +13,8 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'generalNotice', component: () => import('../views/notice/generalNotice.vue') },
       { path: 'corporateNotice', component: () => import('../views/notice/corporateNotice.vue') },
       { path: 'governmentNotice', component: () => import('../views/notice/governmentNotice.vue') },
-      { path: 'setting', component: () => import('../views/setting/SettingBindBuilding.vue') }
+      { path: 'setting', component: () => import('../views/setting/SettingBindBuilding.vue') },
+      { path: 'buildingDetail', component: () => import('../views/setting/BuildingDetail.vue') }
     ]
   },
   {

@@ -32,6 +32,7 @@ import { noticeStore } from '../stores/notice_store'
 import { onBeforeMount } from 'vue'
 import { buildingStore } from '../stores/building_store'
 import axios from 'axios'
+import { downloadAllPDFs } from '../utils/time-task'
 
 const router = useRouter()
 
@@ -65,60 +66,6 @@ const fetch = async () => {
   }
 }
 
-// 下载单个PDF
-const downloadAndStorePDF = async (notice, PathName) => {
-  try {
-    const response = await axios.get(notice.mess_file, {
-      responseType: 'blob'
-    })
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    const filename = notice.id + '.pdf'
-    const result = await window.api.downloadPDF(PathName, notice.mess_file, filename)
-
-    if (result.success) {
-      switch (PathName) {
-        case 'common':
-          noticeStore().addNotices_hasDownload_common({ ...notice, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_common)
-          break
-        case 'adv':
-          noticeStore().addNotices_hasDownload_adv({ ...notice, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_adv)
-          break
-      }
-      console.log(`PDF "${notice.mess_title}" 存储成功 at ${result.path}`)
-    } else {
-      console.error(`下载 PDF "${notice.mess_title}" 失败: ${result.error}`)
-    }
-  } catch (error) {
-    console.error(`下载 PDF ${notice.mess_title} 失败:`, error)
-  }
-}
-
-// 下载所有 PDF
-//TODO:添加其他两种类型的pdf
-const downloadAllPDFs = async () => {
-  const allCommonNotices = noticeStore().getNotices_common
-  const allAdvNotices = noticeStore().getNotices_adv
-  for (const notice of allCommonNotices) {
-    if (noticeStore().getNotices_hasDownload_common.find((item) => item.id === notice.id)) {
-      return
-    }
-    if (notice.mess_file) {
-      await downloadAndStorePDF(notice, 'common')
-    }
-  }
-  for (const notice of allAdvNotices) {
-    if (noticeStore().getNotices_hasDownload_adv.find((item) => item.id === notice.id)) {
-      return
-    }
-    if (notice.mess_file) {
-      await downloadAndStorePDF(notice, 'adv')
-    }
-  }
-}
 onBeforeMount(() => {
   fetch()
 })

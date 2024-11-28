@@ -1,23 +1,22 @@
 <template>
   <div class="top-advertise">
     <div v-if="currentAd">
-      <!-- 如果有图片URL并且图片可见，显示图片 -->
       <img
         v-if="currentAd.Advertisement.image_url && isImageVisible"
-        :src="currentAd.Advertisement.image_url"
+        :src="currentAd.path ? currentAd.path : currentAd.Advertisement.image_url"
         alt="Advertisement Image"
         class="advertisement-media"
       />
 
-      <!-- 如果有视频URL并且视频可见，显示视频 -->
       <video
         v-if="currentAd.Advertisement.video_url && isVideoVisible"
         ref="videoElement"
-        :src="currentAd.Advertisement.video_url"
+        width="1094px"
+        :src="currentAd.path ? currentAd.path : currentAd.Advertisement.video_url"
         class="advertisement-media"
         muted
         autoplay
-        playsinline
+        loop
         @ended="handleVideoEnd"
       ></video>
 
@@ -28,139 +27,141 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue'
 import { adsStore } from '@renderer/stores/ads_store'
-
-// 从 Pinia store 中获取广告列表
-const ads = computed(() => adsStore().getAds)
-
-// 当前广告的索引，初始为0
-const currentAdIndex = ref(0)
-
-// 控制图片和视频的可见性
+// isImageVisible isVideoVisible
 const isImageVisible = ref(true)
 const isVideoVisible = ref(false)
-
-// 引用视频元素，以便控制播放
 const videoElement = ref<HTMLVideoElement | null>(null)
 
-// 定时器 ID，用于广告轮播
+// timer
 let adTimer: number | null = null
-
-// 定时器 ID，用于倒计时
 let countdownTimer: number | null = null
-
-// 计算属性，获取当前广告对象
-const currentAd = computed(() => ads.value[currentAdIndex.value])
-
-// 剩余时间（秒）
+const videoTimer: number | null = null
 const remainingTime = ref<number>(0)
 
-// 固定的图片展示时长（秒）
-const IMAGE_DISPLAY_DURATION = currentAd.value?.play_duration
+// ads store
+const ads = computed(() => adsStore().getAds)
+const ads_hasDownload = computed(() => adsStore().getAds_hasDownload)
 
-// 开始广告轮播循环
+// currentAd
+const currentAdIndex = ref(0)
+const currentAd = ref<any>(null)
+const adsHasDownloadMap = computed(() => {
+  const map = new Map<number, any>()
+  ads_hasDownload.value.forEach((ad) => {
+    map.set(ad.Advertisement.ID, ad)
+  })
+  console.log('adsHasDownloadMap', map)
+  return map
+})
+
+// start ad cycle
 const startAdCycle = () => {
-  clearAdTimer() // 清除之前的广告轮播定时器
-  clearCountdownTimer() // 清除之前的倒计时定时器
+  clearAdTimer()
+  clearCountdownTimer()
 
-  if (!currentAd.value) return // 如果当前广告不存在，直接返回
+  if (ads.value.length > 0) {
+    const ad = ads.value[currentAdIndex.value]
+    const downloadedAd = adsHasDownloadMap.value?.get(ad.Advertisement.ID)
+    if (downloadedAd) {
+      currentAd.value = downloadedAd
+      console.log('播放下载的', currentAd.value)
+    } else {
+      currentAd.value = ad
+      console.log('播放未下载的', currentAd.value)
+    }
+  }
+  if (!currentAd.value) return
 
-  const playDuration = currentAd.value.play_duration // 播放时长（秒）
-
-  // 初始化剩余时间为整个广告的播放时长
+  let playDuration = 5
+  if (!currentAd.value.path) {
+    playDuration = currentAd.value.play_duration
+  } else {
+    playDuration = currentAd.value.Advertisement.video_duration
+  }
+  console.log('playDuration', playDuration)
   remainingTime.value = playDuration
-
-  // 启动倒计时
   startCountdown(playDuration)
 
-  // 检查广告是否有图片和视频
-  const hasImage = !!currentAd.value.Advertisement.image_url
-  const hasVideo = !!currentAd.value.Advertisement.video_url
+  // check ad has image and video
+  let hasImage = false
+  let hasVideo = false
+  if (currentAd.value.Advertisement.type === 'img') {
+    hasImage = !!currentAd.value.Advertisement.image_url
+    hasVideo = false
+  } else if (currentAd.value.Advertisement.type === 'video') {
+    hasImage = false
+    hasVideo = !!currentAd.value.Advertisement.video_url
+  }
+  console.log('hasImage', hasImage)
+  console.log('hasVideo', hasVideo)
 
-  if (hasImage && hasVideo) {
-    // 如果广告同时有图片和视频
-    showImage() // 首先显示图片
-    // 设置定时器，在图片展示时长后显示视频
-    adTimer = window.setTimeout(() => {
-      showVideo(playDuration - IMAGE_DISPLAY_DURATION) // 显示视频，并传入剩余播放时间
-    }, IMAGE_DISPLAY_DURATION * 1000)
-  } else if (hasImage) {
-    // 如果广告只有图片
+  if (hasImage) {
     showImage()
-    // 设置定时器，在整个播放时长后切换到下一个广告
     adTimer = window.setTimeout(() => {
       nextAd()
     }, playDuration * 1000)
   } else if (hasVideo) {
-    // 如果广告只有视频
-    showVideo(playDuration) // 显示视频，播放整个广告时长
+    showVideo()
+    adTimer = window.setTimeout(() => {
+      nextAd()
+    }, playDuration * 1000)
   } else {
-    // 如果广告既没有图片也没有视频，直接切换到下一个广告
     nextAd()
   }
-
-  // 设置整个广告播放结束时，自动切换到下一个广告
-  adTimer = window.setTimeout(() => {
-    nextAd()
-  }, playDuration * 1000)
 }
 
-// 显示图片的方法
 const showImage = () => {
-  isImageVisible.value = true // 显示图片
-  isVideoVisible.value = false // 隐藏视频
+  isImageVisible.value = true
+  isVideoVisible.value = false
 }
 
-// 显示视频的方法，参数为可播放的时长
-const showVideo = (playTime: number) => {
-  isImageVisible.value = false // 隐藏图片
-  isVideoVisible.value = true // 显示视频
+const showVideo = () => {
+  isImageVisible.value = false
+  isVideoVisible.value = true
 
   if (videoElement.value) {
-    videoElement.value.currentTime = 0 // 从头开始播放
-    const playPromise = videoElement.value.play()
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          // 视频已成功播放
-          console.log('视频已开始播放')
-        })
-        .catch((err) => {
-          // 播放视频失败，切换广告
-          console.error('视频播放失败:', err)
-          // wait 1s 后切换广告
-          setTimeout(() => {
-            nextAd()
-          }, 10000)
-        })
+    const handleLoadedMetadata = () => {
+      videoElement.value!.currentTime = 0
+      const playPromise = videoElement.value!.play()
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('视频播放成功')
+          })
+          .catch((err) => {
+            console.error('视频播放失败,且即将跳到下一个广告:', err)
+            setTimeout(() => {
+              nextAd()
+            }, 100000)
+          })
+      }
     }
 
-    // 计算视频应播放的次数
-    const videoDuration = videoElement.value.duration
-    if (videoDuration > 0) {
-      const loopCount = Math.ceil(playTime / videoDuration)
-      videoElement.value.loop = true // 设置视频循环播放
+    // 检查元数据是否已经加载
+    if (videoElement.value!.readyState >= 1) {
+      // HAVE_METADATA
+      handleLoadedMetadata()
     } else {
-      // 如果视频时长未知或为0，设置循环播放
-      videoElement.value.loop = true
+      videoElement.value!.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
     }
   }
 }
 
-// 处理视频播放结束的方法
 const handleVideoEnd = () => {
   // 视频循环播放，不做额外处理
-  // 因为已设置 videoElement.value.loop = true
 }
 
-// 切换到下一个广告的方法
+// next ad
 const nextAd = () => {
-  currentAdIndex.value = (currentAdIndex.value + 1) % ads.value.length // 更新当前广告索引，循环播放
-  startAdCycle() // 开始下一个广告的循环
+  console.log('nextAd', ads.value.length, ads_hasDownload.value.length)
+  currentAdIndex.value = (currentAdIndex.value + 1) % ads.value.length
+
+  startAdCycle()
 }
 
-// 清除广告轮播定时器的方法
+// clear ad cycle timer
 const clearAdTimer = () => {
   if (adTimer !== null) {
     clearTimeout(adTimer) // 清除定时器
@@ -168,46 +169,44 @@ const clearAdTimer = () => {
   }
 }
 
-// 启动倒计时的方法
+// start countdown
 const startCountdown = (duration: number) => {
-  clearCountdownTimer() // 清除之前的倒计时定时器
-  remainingTime.value = duration // 重置剩余时间
+  clearCountdownTimer()
+  remainingTime.value = duration
 
   countdownTimer = window.setInterval(() => {
     if (remainingTime.value > 0) {
-      remainingTime.value -= 1 // 每秒减少1
+      remainingTime.value -= 1
     } else {
-      clearCountdownTimer() // 剩余时间为0时清除倒计时定时器
+      clearCountdownTimer()
+      if (videoElement.value) {
+        videoElement.value.pause()
+      }
+      nextAd()
     }
   }, 1000)
 }
 
-// 清除倒计时定时器的方法
+// clear countdown timer
 const clearCountdownTimer = () => {
   if (countdownTimer !== null) {
-    clearInterval(countdownTimer) // 清除倒计时定时器
+    clearInterval(countdownTimer)
     countdownTimer = null
   }
 }
-
-// 监听 ads 的变化，当广告列表更新时，重置索引并重新开始循环
+// watch ads
 watch(
   ads,
   () => {
     currentAdIndex.value = 0 // 重置当前广告索引
-    startAdCycle() // 重新开始广告循环
+    if (ads.value.length > 0) {
+      console.log('广告列表变化，开始广告循环')
+      startAdCycle()
+    }
   },
   { immediate: true, deep: true }
 )
 
-// 组件挂载时启动广告循环
-onMounted(() => {
-  if (ads.value.length > 0) {
-    startAdCycle()
-  }
-})
-
-// 组件卸载前清除定时器，防止内存泄漏
 onBeforeUnmount(() => {
   clearAdTimer()
   clearCountdownTimer()
@@ -227,9 +226,12 @@ onBeforeUnmount(() => {
 }
 
 .advertisement-media {
-  width: 100%; /* 宽度占满容器 */
-  height: 100%; /* 高度占满容器 */
-  object-fit: cover; /* 保持纵横比，覆盖整个容器 */
+  width: 1094px;
+  height: auto; /* Maintain aspect ratio */
+  max-height: 100%; /* Ensure it doesn't exceed container's height */
+  display: block;
+  border-radius: 10px;
+  object-fit: contain; /* Scale the media to fit within the container without cropping */
 }
 
 .countdown-timer {

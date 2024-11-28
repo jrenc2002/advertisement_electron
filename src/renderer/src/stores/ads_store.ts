@@ -29,16 +29,16 @@ export const adsStore = defineStore('ads', {
       }
     },
     addAds_hasDownload(ad: any) {
-      const exists = this.ads_hasDownload.some((existingAd) => existingAd.ID === ad.ID)
-      if (!exists) {
-        this.ads_hasDownload.push(ad)
+      if (this.ads_hasDownload.find((item) => item.Advertisement.ID === ad.Advertisement.ID)) {
+        return
       }
+      this.ads_hasDownload.push(ad)
     },
     addAds_hasDownload_path(ad: any) {
-      const exists = this.ads_hasDownload_path.some((existingAd) => existingAd.adId === ad.adId)
-      if (!exists) {
-        this.ads_hasDownload_path.push(ad)
+      if (this.ads_hasDownload_path.find((item) => item.AdvertisementID === ad.AdvertisementID)) {
+        return
       }
+      this.ads_hasDownload_path.push(ad)
     }
   },
   persist: true

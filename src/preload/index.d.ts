@@ -7,7 +7,7 @@ interface DownloadResponse {
 }
 
 interface Api {
-  download: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
+  downloadPDF: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
   downloadVideo: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
   downloadImage: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
 }
