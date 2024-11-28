@@ -11,7 +11,7 @@
       <video
         v-if="currentAd.Advertisement.video_url && isVideoVisible"
         ref="videoElement"
-        width="1094px"
+        :width="mediaWidth"
         :src="currentAd.path ? currentAd.path : currentAd.Advertisement.video_url"
         class="advertisement-media"
         muted
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { adsStore } from '@renderer/stores/ads_store'
 // isImageVisible isVideoVisible
 const isImageVisible = ref(true)
@@ -37,7 +37,6 @@ const videoElement = ref<HTMLVideoElement | null>(null)
 // timer
 let adTimer: number | null = null
 let countdownTimer: number | null = null
-const videoTimer: number | null = null
 const remainingTime = ref<number>(0)
 
 // ads store
@@ -207,6 +206,24 @@ watch(
   { immediate: true, deep: true }
 )
 
+/*
+get window size and update media width
+**/
+const mediaWidth = ref(1094) // 初始宽度
+const updateMediaWidth = (size: { width: number; height: number }) => {
+  const maxWidth = 1440
+  mediaWidth.value = size.width > maxWidth ? maxWidth : size.width // 例如，填充窗口宽度的90%
+}
+
+window.api.getWindowSize().then((size) => {
+  updateMediaWidth(size)
+})
+const handleResize = (size: { width: number; height: number }) => {
+  updateMediaWidth(size)
+}
+
+window.api.onWindowResize(handleResize)
+
 onBeforeUnmount(() => {
   clearAdTimer()
   clearCountdownTimer()
@@ -218,20 +235,19 @@ onBeforeUnmount(() => {
   width: 100vw; /* 宽度占满视口宽度 */
   height: 438px; /* 固定高度 */
   background-color: #f0f0f0; /* 背景颜色 */
-  display: flex; /* 使用 Flex 布局 */
+  display: flex; /* Flex 布局 */
   justify-content: center; /* 水平居中 */
   align-items: center; /* 垂直居中 */
-  position: relative; /* 相对定位，方便内部绝对定位元素 */
+  position: relative; /* 相对定位 */
   overflow: hidden; /* 隐藏溢出内容 */
 }
 
 .advertisement-media {
-  width: 1094px;
-  height: auto; /* Maintain aspect ratio */
-  max-height: 100%; /* Ensure it doesn't exceed container's height */
+  height: auto; /* 保持纵横比 */
+  max-height: 100%; /* 防止超过容器高度 */
   display: block;
   border-radius: 10px;
-  object-fit: contain; /* Scale the media to fit within the container without cropping */
+  object-fit: contain; /* 缩放以适应容器，不裁剪 */
 }
 
 .countdown-timer {

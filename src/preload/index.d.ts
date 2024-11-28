@@ -6,10 +6,18 @@ interface DownloadResponse {
   error?: string
 }
 
+interface WindowSize {
+  width: number
+  height: number
+}
+
 interface Api {
   downloadPDF: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
   downloadVideo: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
   downloadImage: (PathName: string, url: string, filename: string) => Promise<DownloadResponse>
+
+  getWindowSize: () => Promise<WindowSize>
+  onWindowResize: (callback: (size: WindowSize) => void) => void
 }
 
 declare global {

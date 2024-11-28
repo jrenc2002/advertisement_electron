@@ -11,7 +11,9 @@ const api = {
   },
   downloadImage: (PathName: string, url: string, filename: string) => {
     return ipcRenderer.invoke('download-image', { PathName, url, filename })
-  }
+  },
+  getWindowSize: () => ipcRenderer.invoke('get-window-size'),
+  onWindowResize: (callback) => ipcRenderer.on('window-resize', (event, size) => callback(size))
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
