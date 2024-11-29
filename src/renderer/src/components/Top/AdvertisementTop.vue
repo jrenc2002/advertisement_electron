@@ -54,9 +54,11 @@ const currentAdIndex = ref(0)
 const currentAd = ref<any>(null)
 const adsHasDownloadMap = computed(() => {
   const map = new Map<number, any>()
-  ads_hasDownload.value.forEach((ad) => {
-    map.set(ad.Advertisement.ID, ad)
-  })
+  if (ads_hasDownload.value) {
+    ads_hasDownload.value.forEach((ad) => {
+      map.set(ad.Advertisement?.ID, ad)
+    })
+  }
   // console.log('adsHasDownloadMap', map)
   return map
 })

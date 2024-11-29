@@ -34,12 +34,15 @@ import { buildingStore } from '@renderer/stores/building_store'
 import axios from 'axios'
 import { downloadAllPDFs } from '@renderer/utils/time-task'
 import { useTaskStore } from '@renderer/stores/task_store'
+import { useNotificationStore } from '@renderer/stores/noticefication_store'
 
 const router = useRouter()
 
 const handleReturn = () => {
   if (router.currentRoute.value.path === '/setting') {
-    router.go(-1)
+    router.push('/urgentNotice')
+  } else if (router.currentRoute.value.path === '/buildingDetail') {
+    router.push('/setting')
   } else {
     router.push('/setting')
   }
@@ -48,11 +51,13 @@ const handleReturn = () => {
 
 // fetch notices data
 const fetch = async () => {
-  const blg_id = buildingStore().getBuilding.blg_id
+  let blg_id = buildingStore().getBuilding.blg_id
   // console.log(blg_id)
-
+  if (!blg_id) {
+    blg_id = '314100'
+  }
   try {
-    const res = await getNotices({ blg_id })
+    const res = await getNotices({ blg_id: blg_id })
     const notices = res.data
     const commonNotices = notices.filter((notice) => notice.mess_type === 'common')
     const advNotices = notices.filter((notice) => notice.mess_type === 'adv')

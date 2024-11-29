@@ -3,8 +3,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  download: (PathName: string, url: string, filename: string) => {
-    return ipcRenderer.invoke('download', { PathName, url, filename })
+  downloadPDF: (PathName: string, url: string, filename: string) => {
+    return ipcRenderer.invoke('download-pdf', { PathName, url, filename })
   },
   downloadVideo: (PathName: string, url: string, filename: string) => {
     return ipcRenderer.invoke('download-video', { PathName, url, filename })
@@ -13,7 +13,7 @@ const api = {
     return ipcRenderer.invoke('download-image', { PathName, url, filename })
   },
   getWindowSize: () => ipcRenderer.invoke('get-window-size'),
-  onWindowResize: (callback) => ipcRenderer.on('window-resize', (event, size) => callback(size))
+  onWindowResize: (callback) => ipcRenderer.on('window-resize', (size) => callback(size))
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
