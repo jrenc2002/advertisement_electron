@@ -95,11 +95,12 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true })
     }
+    const filePath = path.join(saveDir, filename)
     const fileExists = fs.existsSync(path.join(saveDir, filename))
     if (fileExists) {
-      return { success: false, error: 'file exists' }
+      return { success: true, path: filePath }
     }
-    const filePath = path.join(saveDir, filename)
+
     fs.writeFileSync(filePath, response.data)
     return { success: true, path: filePath }
   } catch (error: any) {

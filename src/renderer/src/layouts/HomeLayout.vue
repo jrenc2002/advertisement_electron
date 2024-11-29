@@ -55,6 +55,7 @@ const fetch = async () => {
   // console.log(blg_id)
   if (!blg_id) {
     blg_id = '314100'
+    localStorage.setItem('blg_id', blg_id)
   }
   try {
     const res = await getNotices({ blg_id: blg_id })

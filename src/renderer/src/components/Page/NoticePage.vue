@@ -88,16 +88,19 @@ function viewPdf(pdf: any) {
           }
         })
       }
+    } else {
+      router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
     }
   } else if (pdf.mess_type === 'adv') {
     console.log('adv')
     if (noticeStore().getNotices_hasDownload_adv.find((item) => item.id === pdf.id)) {
       const pdfs = noticeStore().getNotices_hasDownload_adv.find((item) => item.id === pdf.id)
       if (pdfs) {
-        console.log('tiaozhuanlianjie', pdfs)
         router.push({ path: '/pdfPreview', query: { pdfSource: pdfs.path } })
         console.log(pdfs.path)
       }
+    } else {
+      router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
     }
   } else {
     console.log('没有下载')

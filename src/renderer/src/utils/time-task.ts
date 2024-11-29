@@ -45,10 +45,13 @@ export const downloadImage = async (ad, PathName) => {
 
 export const downloadAllAds = async () => {
   const allAds = JSON.parse(JSON.stringify(adsStore().getAds))
-  // console.log('allAds', allAds)
+  const downloadedAds = adsStore().ads_hasDownload.map((ad) => ad.Advertisement.ID) //
 
-  // create all download tasks array
-  const downloadTasks = allAds.map(async (ad) => {
+  // Filter ads that have not been downloaded yet
+  const adsToDownload = allAds.filter((ad) => !downloadedAds.includes(ad.Advertisement.ID))
+  console.log('adsToDownload', adsToDownload)
+  // Create all down load tasks array for ads that have not been downloaded
+  const downloadTasks = adsToDownload.map(async (ad) => {
     const adId = ad.advertisement_id
 
     try {
@@ -72,10 +75,10 @@ export const downloadAllAds = async () => {
     }
   })
 
-  // execute all download tasks in parallel and wait for all tasks to complete
+  // Execute all download tasks in parallel and wait for all tasks to complete
   const results = await Promise.allSettled(downloadTasks)
 
-  // handle each task result
+  // Handle each task result
   results.forEach((result) => {
     if (result.status === 'fulfilled') {
       const { adId, status, error } = result.value
@@ -194,7 +197,7 @@ export const timeTask = async () => {
     useNotificationStore().addNotification('update failed: please login first', 'error')
     return
   }
-  let blg_id = ''
+  let blg_id = localStorage.getItem('blg_id')
   await loginBuilding({ user_name, password }).then((res) => {
     // console.log(res.data)
     adsStore().setAds(res.data.advertisements_buildings)
@@ -204,7 +207,7 @@ export const timeTask = async () => {
     blg_id = buildingStore().getBuilding.blg_id
   })
 
-  await getNotices({ blg_id })
+  await getNotices({ blg_id: blg_id })
     .then((res) => {
       useNotificationStore().addNotification('更新成功', 'success')
       const notices = res.data
