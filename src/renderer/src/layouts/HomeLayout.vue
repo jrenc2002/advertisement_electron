@@ -33,6 +33,7 @@ import { onBeforeMount } from 'vue'
 import { buildingStore } from '../stores/building_store'
 import axios from 'axios'
 import { downloadAllPDFs } from '../utils/time-task'
+import { useTaskStore } from '../stores/task_store'
 
 const router = useRouter()
 
@@ -45,7 +46,7 @@ const handleReturn = () => {
   console.log(router.currentRoute.value.path)
 }
 
-// 获取通知数据
+// fetch notices data
 const fetch = async () => {
   const blg_id = buildingStore().getBuilding.blg_id
   console.log(blg_id)
@@ -63,16 +64,19 @@ const fetch = async () => {
     downloadAllPDFs()
   } catch (error) {
     console.error('获取通知失败:', error)
+    useNotificationStore().addNotification('获取通知失败', 'error')
   }
 }
 
 onBeforeMount(() => {
   fetch()
+  if (localStorage.getItem('updateInterval')) {
+    useTaskStore().initialize()
+  }
 })
 </script>
 
 <style scoped lang="scss">
-/* 添加一些基本样式 */
 .home-layout {
   // min-height: 100vh;
   display: flex;

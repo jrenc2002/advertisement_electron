@@ -3,6 +3,7 @@
     <div v-if="currentAd">
       <img
         v-if="currentAd.Advertisement.image_url && isImageVisible"
+        ref="imageElement"
         :src="currentAd.path ? currentAd.path : currentAd.Advertisement.image_url"
         alt="Advertisement Image"
         class="advertisement-media"
@@ -21,18 +22,22 @@
       ></video>
 
       <!-- 倒计时显示 -->
-      <div class="countdown-timer">{{ remainingTime }}秒</div>
+      <div class="countdown-timer">{{ remainingTime }}秒{{ taskStore.formattedCountdown }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { adsStore } from '@renderer/stores/ads_store'
+import { useTaskStore } from '@renderer/stores/task_store'
+
+const taskStore = useTaskStore()
 // isImageVisible isVideoVisible
 const isImageVisible = ref(true)
 const isVideoVisible = ref(false)
 const videoElement = ref<HTMLVideoElement | null>(null)
+const imageElement = ref<HTMLImageElement | null>(null)
 
 // timer
 let adTimer: number | null = null
@@ -130,10 +135,8 @@ const showVideo = () => {
             console.log('视频播放成功')
           })
           .catch((err) => {
-            console.error('视频播放失败,且即将跳到下一个广告:', err)
-            setTimeout(() => {
-              nextAd()
-            }, 100000)
+            console.log('播放时间', videoElement.value!.currentTime)
+            console.warn('视频播放失败,且即将跳到下一个广告:', err)
           })
       }
     }
@@ -197,8 +200,26 @@ const clearCountdownTimer = () => {
 watch(
   ads,
   () => {
-    currentAdIndex.value = 0 // 重置当前广告索引
-    if (ads.value.length > 0) {
+    console.log('ads changed', currentAdIndex.value)
+    // currentAdIndex.value = 0
+    if (ads.value.length < currentAdIndex.value) {
+      currentAdIndex.value = 0
+    }
+    // unbind binding
+    else if (ads.value.length === 0) {
+      if (videoElement.value) {
+        videoElement.value.pause()
+        clearAdTimer()
+        clearCountdownTimer()
+      }
+    }
+    if (remainingTime.value > 0) {
+      //延時執行
+      setTimeout(() => {
+        console.log('广告列表变化，开始广告循环')
+        startAdCycle()
+      }, remainingTime.value * 1000)
+    } else {
       console.log('广告列表变化，开始广告循环')
       startAdCycle()
     }

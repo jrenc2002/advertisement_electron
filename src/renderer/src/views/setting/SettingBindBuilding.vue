@@ -59,6 +59,8 @@ const handleLogin = async () => {
   await loginBuilding(loginData.value)
     .then((res) => {
       console.log(res.data)
+      localStorage.setItem('login-username', loginData.value.user_name)
+      localStorage.setItem('login-password', loginData.value.password)
       adsStore().setAds(res.data.advertisements_buildings)
       console.log(adsStore().getAds)
       downloadAllAds()

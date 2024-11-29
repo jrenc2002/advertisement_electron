@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="form-line">
+        <div class="form-line building-name">
           <label>{{ BuildingStore.getBuilding.name }}</label>
         </div>
       </div>
@@ -37,9 +37,17 @@
       </div>
       <div class="form-group">
         <div class="form-line">
-          <input v-model="updateInterval" class="form-input" type="number" />
+          <input
+            v-model.number="updateInterval"
+            class="form-input"
+            type="number"
+            min="1"
+            @blur="startScheduledTask"
+            @keyup.enter="startScheduledTask"
+          />
         </div>
       </div>
+
       <div class="form-group">
         <button class="form-button" @click="handleUnbind">解除綁定</button>
       </div>
@@ -48,27 +56,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { adsStore } from '../../stores/ads_store'
 import { useRouter } from 'vue-router'
 import { buildingStore } from '../../stores/building_store'
 import { useNotificationStore } from '../../stores/noticefication_store'
+import { useTaskStore } from '../../stores/task_store'
+
 const router = useRouter()
 const notificationStore = useNotificationStore()
 const AdsStore = adsStore()
 const BuildingStore = buildingStore()
+const taskStore = useTaskStore()
 
-const updateInterval = ref<number>(0)
-// Fetch buildings on mount
-// Handle unbind
+const updateInterval = ref<number>(1)
+const startScheduledTask = () => {
+  taskStore.setUpdateInterval(updateInterval.value)
+  taskStore.startScheduledTask()
+}
 const handleUnbind = async () => {
   AdsStore.setAds([])
   AdsStore.setAds_hasDownload([])
   AdsStore.setAds_hasDownload_path([])
   BuildingStore.setBuilding('')
+  taskStore.stopScheduledTask()
   notificationStore.addNotification('解除綁定成功', 'success')
   router.push('/setting')
 }
+onBeforeMount(() => {
+  updateInterval.value = taskStore.updateInterval
+})
 </script>
 
 <style lang="scss" scoped>
@@ -112,6 +129,15 @@ const handleUnbind = async () => {
   display: flex;
   flex-direction: row;
   justify-content: start;
+}
+.building-name {
+  color: #555;
+  font-family: 'Adelle Sans Devanagari';
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 120% */
+  letter-spacing: 2px;
 }
 .ad-url {
   width: 508px;
@@ -217,5 +243,12 @@ const handleUnbind = async () => {
 }
 button {
   padding: 10px 15px;
+}
+
+/* 添加倒计时样式 */
+.countdown {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
 }
 </style>

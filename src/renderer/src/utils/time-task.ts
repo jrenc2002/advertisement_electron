@@ -5,6 +5,10 @@
 import axios from 'axios'
 import { adsStore } from '../stores/ads_store'
 import { noticeStore } from '../stores/notice_store'
+import { loginBuilding } from '../utils/apis/building/buildings'
+import { buildingStore } from '../stores/building_store'
+import { getNotices } from '../utils/apis/notice/notice'
+import { useNotificationStore } from '../stores/noticefication_store'
 
 export const downloadImage = async (ad, PathName) => {
   try {
@@ -35,6 +39,7 @@ export const downloadImage = async (ad, PathName) => {
     }
   } catch (error) {
     console.error(`download image ${ad.title} failed:`, error)
+    useNotificationStore().addNotification(`下载图片失败: ${ad.title}`, 'error')
     return { success: false, error: error }
   }
 }
@@ -121,6 +126,7 @@ export const downloadVideo = async (ad, PathName) => {
     }
   } catch (error) {
     console.error(`download video ${ad.title} failed:`, error)
+    useNotificationStore().addNotification(`下载视频失败: ${ad.title}`, 'error')
     return { success: false, error: error }
   }
 }
@@ -153,6 +159,7 @@ export const downloadAndStorePDF = async (notice, PathName) => {
       console.error(`下载 PDF "${notice.mess_title}" 失败: ${result.error}`)
     }
   } catch (error) {
+    useNotificationStore().addNotification(`下载PDF失败: ${notice.mess_title}`, 'error')
     console.error(`下载 PDF ${notice.mess_title} 失败:`, error)
   }
 }
@@ -178,4 +185,41 @@ export const downloadAllPDFs = async () => {
       await downloadAndStorePDF(notice, 'adv')
     }
   }
+}
+
+export const timeTask = async () => {
+  const user_name = localStorage.getItem('login-username')
+  const password = localStorage.getItem('login-password')
+
+  if (!user_name || !password) {
+    useNotificationStore().addNotification('update failed: please login first', 'error')
+    return
+  }
+  let blg_id = ''
+  await loginBuilding({ user_name, password }).then((res) => {
+    console.log(res.data)
+    adsStore().setAds(res.data.advertisements_buildings)
+    console.log(adsStore().getAds)
+    downloadAllAds()
+    buildingStore().setBuilding(adsStore().getAds[0].BuildingAdmin)
+    blg_id = buildingStore().getBuilding.blg_id
+  })
+
+  await getNotices({ blg_id })
+    .then((res) => {
+      useNotificationStore().addNotification('更新成功', 'success')
+      const notices = res.data
+      const commonNotices = notices.filter((notice) => notice.mess_type === 'common')
+      const advNotices = notices.filter((notice) => notice.mess_type === 'adv')
+      noticeStore().setNotices_common(commonNotices)
+      noticeStore().setNotices_adv(advNotices)
+      noticeStore().setNotices(notices)
+      console.log(noticeStore().getNotices_common)
+      console.log(noticeStore().getNotices_adv)
+      downloadAllPDFs()
+    })
+    .catch((error) => {
+      console.error('auto update: get notices failed:', error)
+      useNotificationStore().addNotification('更新失败', 'error')
+    })
 }
