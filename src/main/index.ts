@@ -86,7 +86,7 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-// IPC 监听下载pdf请求
+// download pdf
 ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' })
@@ -108,25 +108,22 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   }
 })
 
-// 监听 下载视频请求
+// download video
 ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' })
     const contentType = response.headers['content-type']
 
-    // 允许的视频类型
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/avi', 'video/mkv']
 
     if (!allowedVideoTypes.includes(contentType)) {
       return { success: false, error: `unsupported video type: ${contentType}` }
     }
-
-    // 根据 Content-Type 确定扩展名
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
 
     const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'ads', PathName)
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', PathName)
 
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true })
@@ -147,12 +144,12 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
   }
 })
 
-// 清理文件名函数
+// sanitize filename
 const sanitizeFilename = (filename: string): string => {
   return filename.replace(/[^a-zA-Z0-9_\-.]/g, '_')
 }
 
-// 监听下载图片请求
+// download image
 ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'stream', timeout: 10000 })
@@ -173,7 +170,7 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     ]
 
     if (!allowedImageTypes.includes(contentType)) {
-      console.error(`unsupported image type: ${contentType}`) // 错误日志
+      console.error(`unsupported image type: ${contentType}`)
       return { success: false, error: `unsupported image type: ${contentType}` }
     }
 
@@ -183,18 +180,14 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
 
     const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'ads', PathName)
-
-    console.log(`image will be saved to: ${saveDir}`) // 日志输出保存目录
-
+    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', PathName)
+    // console.log(`image will be saved to: ${saveDir}`)
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true })
-      console.log(`create directory: ${saveDir}`) // 日志输出
+      console.log(`create directory: ${saveDir}`)
     }
-
     const filePath = path.join(saveDir, validatedFilename)
-
-    console.log(`save path: ${filePath}`) // 日志输出保存路径
+    // console.log(`save path: ${filePath}`)
 
     // if file exists, return the path
     if (fs.existsSync(filePath)) {
@@ -203,7 +196,7 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     }
 
     await pipeline(response.data, fs.createWriteStream(filePath))
-    console.log(`image ${validatedFilename} download success, path: ${filePath}`) // 成功日志
+    console.log(`image ${validatedFilename} download success, path: ${filePath}`)
     return { success: true, path: filePath }
   } catch (error: any) {
     console.error(`download image "${filename}" failed:`, error)

@@ -5,9 +5,9 @@
 import axios from 'axios'
 import { adsStore } from '../stores/ads_store'
 import { noticeStore } from '../stores/notice_store'
-import { loginBuilding } from '../utils/apis/building/buildings'
+import { loginBuilding } from '@renderer/apis/building/buildings'
 import { buildingStore } from '../stores/building_store'
-import { getNotices } from '../utils/apis/notice/notice'
+import { getNotices } from '@renderer/apis/notice/notice'
 import { useNotificationStore } from '../stores/noticefication_store'
 
 export const downloadImage = async (ad, PathName) => {
@@ -25,11 +25,10 @@ export const downloadImage = async (ad, PathName) => {
     link.href = URL.createObjectURL(blob)
 
     const filename = `${ad.ID}.${extension}`
-    console.log('filename image', filename)
+
     const result = await window.api.downloadImage(PathName, ad.image_url, filename)
 
     if (result.success) {
-      console.log(`image ${filename} download success, path: ${result.path}`)
       adsStore().addAds_hasDownload({ Advertisement: ad, path: result.path })
       adsStore().addAds_hasDownload_path({ AdvertisementID: ad.ID, path: result.path })
       return { success: true, path: result.path }
@@ -46,7 +45,7 @@ export const downloadImage = async (ad, PathName) => {
 
 export const downloadAllAds = async () => {
   const allAds = JSON.parse(JSON.stringify(adsStore().getAds))
-  console.log('allAds', allAds)
+  // console.log('allAds', allAds)
 
   // create all download tasks array
   const downloadTasks = allAds.map(async (ad) => {
@@ -92,7 +91,7 @@ export const downloadAllAds = async () => {
     }
   })
 
-  console.log('all ads download tasks completed')
+  // console.log('all ads download tasks completed')
 }
 /*
  *download video
@@ -112,11 +111,11 @@ export const downloadVideo = async (ad, PathName) => {
     link.href = URL.createObjectURL(blob)
 
     const filename = `${ad.ID}.${extension}`
-    console.log('filename video', filename)
+    // console.log('filename video', filename)
     const result = await window.api.downloadVideo(PathName, ad.video_url, filename)
 
     if (result.success) {
-      console.log(`video ${filename} download success, path: ${result.path}`)
+      // console.log(`video ${filename} download success, path: ${result.path}`)
       adsStore().addAds_hasDownload({ Advertisement: ad, path: result.path })
       adsStore().addAds_hasDownload_path({ AdvertisementID: ad.ID, path: result.path })
       return { success: true, path: result.path }
@@ -147,14 +146,14 @@ export const downloadAndStorePDF = async (notice, PathName) => {
       switch (PathName) {
         case 'common':
           noticeStore().addNotices_hasDownload_common({ ...notice, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_common)
+          // console.log(noticeStore().getNotices_hasDownload_common)
           break
         case 'adv':
           noticeStore().addNotices_hasDownload_adv({ ...notice, path: result.path })
-          console.log(noticeStore().getNotices_hasDownload_adv)
+          // console.log(noticeStore().getNotices_hasDownload_adv)
           break
       }
-      console.log(`PDF "${notice.mess_title}" 存储成功 at ${result.path}`)
+      // console.log(`PDF "${notice.mess_title}" 存储成功 at ${result.path}`)
     } else {
       console.error(`下载 PDF "${notice.mess_title}" 失败: ${result.error}`)
     }
@@ -197,9 +196,9 @@ export const timeTask = async () => {
   }
   let blg_id = ''
   await loginBuilding({ user_name, password }).then((res) => {
-    console.log(res.data)
+    // console.log(res.data)
     adsStore().setAds(res.data.advertisements_buildings)
-    console.log(adsStore().getAds)
+    // console.log(adsStore().getAds)
     downloadAllAds()
     buildingStore().setBuilding(adsStore().getAds[0].BuildingAdmin)
     blg_id = buildingStore().getBuilding.blg_id
@@ -214,8 +213,8 @@ export const timeTask = async () => {
       noticeStore().setNotices_common(commonNotices)
       noticeStore().setNotices_adv(advNotices)
       noticeStore().setNotices(notices)
-      console.log(noticeStore().getNotices_common)
-      console.log(noticeStore().getNotices_adv)
+      // console.log(noticeStore().getNotices_common)
+      // console.log(noticeStore().getNotices_adv)
       downloadAllPDFs()
     })
     .catch((error) => {

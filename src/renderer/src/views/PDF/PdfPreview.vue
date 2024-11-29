@@ -16,20 +16,20 @@
 
 <script setup lang="ts">
 import { ref, watch, onBeforeMount } from 'vue'
-import PDFViewer from '@renderer/components/PDF/PDFViewer.vue'
-import PDFThumbnails from '@renderer/components/PDF/PDFThumbnails.vue'
+import PDFViewer from '@renderer/components/pdf/PDFViewer.vue'
+import PDFThumbnails from '@renderer/components/pdf/PDFThumbnails.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const handleReturn = () => {
   router.go(-1)
-  console.log('router.currentRoute.value.path', router.currentRoute.value.path)
+  // console.log('router.currentRoute.value.path', router.currentRoute.value.path)
 }
 const pdfSource = ref('')
 // 定义组件接收的 props
 onBeforeMount(() => {
   pdfSource.value = router.currentRoute.value.query.pdfSource as string
-  console.log(pdfSource.value)
+  // console.log(pdfSource.value)
 })
 // 定义事件
 const emit = defineEmits<{

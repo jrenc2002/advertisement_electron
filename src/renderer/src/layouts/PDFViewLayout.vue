@@ -13,13 +13,13 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
-import WeatherFooter from '../components/Footer/WeatherFooter.vue'
+import AdvertisementTop from '@renderer/components/top/AdvertisementTop.vue'
+import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const handleReturn = () => {
   router.push('/PdfPreview')
-  console.log(router.currentRoute.value.path)
+  // console.log(router.currentRoute.value.path)
 }
 </script>
 <style scoped lang="scss">

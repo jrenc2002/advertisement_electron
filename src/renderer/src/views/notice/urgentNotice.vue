@@ -4,7 +4,7 @@
 </template>
 
 <script setup lang="ts">
-import NoticePage from '@renderer/components/Page/NoticePage.vue'
+import NoticePage from '@renderer/components/page/NoticePage.vue'
 import { noticeStore } from '@renderer/stores/notice_store'
 import { onBeforeMount, ref } from 'vue'
 const pdfSources = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string }[]>(

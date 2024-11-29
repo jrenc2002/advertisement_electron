@@ -8,11 +8,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     component: HomeLayout,
     children: [
-      { path: '', component: () => import('../views/notice/urgentNotice.vue') },
-      { path: 'urgentNotice', component: () => import('../views/notice/urgentNotice.vue') },
-      { path: 'generalNotice', component: () => import('../views/notice/generalNotice.vue') },
-      { path: 'corporateNotice', component: () => import('../views/notice/corporateNotice.vue') },
-      { path: 'governmentNotice', component: () => import('../views/notice/governmentNotice.vue') },
+      { path: '', component: () => import('../views/notice/UrgentNotice.vue') },
+      { path: 'urgentNotice', component: () => import('../views/notice/UrgentNotice.vue') },
+      { path: 'generalNotice', component: () => import('../views/notice/GeneralNotice.vue') },
+      { path: 'corporateNotice', component: () => import('../views/notice/CorporateNotice.vue') },
+      { path: 'governmentNotice', component: () => import('../views/notice/GovernmentNotice.vue') },
       { path: 'setting', component: () => import('../views/setting/SettingBindBuilding.vue') },
       { path: 'buildingDetail', component: () => import('../views/setting/BuildingDetail.vue') }
     ]
@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/pdfPreview',
     component: PDFViewLayout,
-    children: [{ path: '', component: () => import('../views/PDF/PdfPreview.vue') }]
+    children: [{ path: '', component: () => import('../views/pdf/PdfPreview.vue') }]
   }
 ]
 

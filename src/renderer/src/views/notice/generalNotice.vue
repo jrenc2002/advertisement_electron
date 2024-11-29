@@ -4,7 +4,7 @@
 </template>
 
 <script setup lang="ts">
-import NoticePage from '@renderer/components/Page/NoticePage.vue'
+import NoticePage from '@renderer/components/page/NoticePage.vue'
 import { noticeStore } from '@renderer/stores/notice_store'
 import { onMounted, ref } from 'vue'
 

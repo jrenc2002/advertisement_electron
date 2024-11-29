@@ -1,4 +1,4 @@
-import http from '../../advertisement'
+import http from '@renderer/utils/advertisement'
 
 export const getBuildings = (data: any) => {
   return http.get('api/buildings', { params: data })

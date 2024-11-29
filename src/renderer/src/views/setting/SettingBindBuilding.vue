@@ -33,12 +33,12 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { loginBuilding } from '../../utils/apis/building/buildings'
-import { adsStore } from '../../stores/ads_store'
+import { loginBuilding } from '@renderer/apis/building/buildings'
+import { adsStore } from '@renderer/stores/ads_store'
 import { useRouter } from 'vue-router'
-import { useNotificationStore } from '../../stores/noticefication_store'
-import { buildingStore } from '../../stores/building_store'
-import { downloadAllAds } from '../../utils/time-task'
+import { useNotificationStore } from '@renderer/stores/noticefication_store'
+import { buildingStore } from '@renderer/stores/building_store'
+import { downloadAllAds } from '@renderer/utils/time-task'
 const notificationStore = useNotificationStore()
 
 const router = useRouter()
@@ -58,11 +58,11 @@ watch(selectedBuilding, () => {
 const handleLogin = async () => {
   await loginBuilding(loginData.value)
     .then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       localStorage.setItem('login-username', loginData.value.user_name)
       localStorage.setItem('login-password', loginData.value.password)
       adsStore().setAds(res.data.advertisements_buildings)
-      console.log(adsStore().getAds)
+      // console.log(adsStore().getAds)
       downloadAllAds()
       buildingStore().setBuilding(adsStore().getAds[0].BuildingAdmin)
       notificationStore.addNotification('绑定成功', 'success')

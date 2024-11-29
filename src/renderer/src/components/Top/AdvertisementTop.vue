@@ -7,6 +7,7 @@
         :src="currentAd.path ? currentAd.path : currentAd.Advertisement.image_url"
         alt="Advertisement Image"
         class="advertisement-media"
+        :width="mediaWidth"
       />
 
       <video
@@ -22,7 +23,7 @@
       ></video>
 
       <!-- 倒计时显示 -->
-      <div class="countdown-timer">{{ remainingTime }}秒{{ taskStore.formattedCountdown }}</div>
+      <div class="countdown-timer">{{ remainingTime }}秒 {{ taskStore.formattedCountdown }}</div>
     </div>
   </div>
 </template>
@@ -56,11 +57,13 @@ const adsHasDownloadMap = computed(() => {
   ads_hasDownload.value.forEach((ad) => {
     map.set(ad.Advertisement.ID, ad)
   })
-  console.log('adsHasDownloadMap', map)
+  // console.log('adsHasDownloadMap', map)
   return map
 })
 
-// start ad cycle
+/*
+ * video and image show loop
+ **/
 const startAdCycle = () => {
   clearAdTimer()
   clearCountdownTimer()
@@ -70,10 +73,10 @@ const startAdCycle = () => {
     const downloadedAd = adsHasDownloadMap.value?.get(ad.Advertisement.ID)
     if (downloadedAd) {
       currentAd.value = downloadedAd
-      console.log('播放下载的', currentAd.value)
+      // console.log('播放下载的', currentAd.value)
     } else {
       currentAd.value = ad
-      console.log('播放未下载的', currentAd.value)
+      // console.log('播放未下载的', currentAd.value)
     }
   }
   if (!currentAd.value) return
@@ -84,7 +87,7 @@ const startAdCycle = () => {
   } else {
     playDuration = currentAd.value.Advertisement.video_duration
   }
-  console.log('playDuration', playDuration)
+  // console.log('playDuration', playDuration)
   remainingTime.value = playDuration
   startCountdown(playDuration)
 
@@ -98,8 +101,8 @@ const startAdCycle = () => {
     hasImage = false
     hasVideo = !!currentAd.value.Advertisement.video_url
   }
-  console.log('hasImage', hasImage)
-  console.log('hasVideo', hasVideo)
+  // console.log('hasImage', hasImage)
+  // console.log('hasVideo', hasVideo)
 
   if (hasImage) {
     showImage()
@@ -132,11 +135,11 @@ const showVideo = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('视频播放成功')
+            // console.log('视频播放成功')
           })
           .catch((err) => {
-            console.log('播放时间', videoElement.value!.currentTime)
-            console.warn('视频播放失败,且即将跳到下一个广告:', err)
+            // console.log('播放时间', videoElement.value!.currentTime)
+            console.warn('视频播放切换到下一个广告:', err)
           })
       }
     }
@@ -157,16 +160,15 @@ const handleVideoEnd = () => {
 
 // next ad
 const nextAd = () => {
-  console.log('nextAd', ads.value.length, ads_hasDownload.value.length)
+  // console.log('nextAd', ads.value.length, ads_hasDownload.value.length)
   currentAdIndex.value = (currentAdIndex.value + 1) % ads.value.length
-
   startAdCycle()
 }
 
 // clear ad cycle timer
 const clearAdTimer = () => {
   if (adTimer !== null) {
-    clearTimeout(adTimer) // 清除定时器
+    clearTimeout(adTimer)
     adTimer = null
   }
 }
@@ -196,11 +198,11 @@ const clearCountdownTimer = () => {
     countdownTimer = null
   }
 }
-// watch ads
+// watch ads change
 watch(
   ads,
   () => {
-    console.log('ads changed', currentAdIndex.value)
+    // console.log('ads changed', currentAdIndex.value)
     // currentAdIndex.value = 0
     if (ads.value.length < currentAdIndex.value) {
       currentAdIndex.value = 0
@@ -216,11 +218,11 @@ watch(
     if (remainingTime.value > 0) {
       //延時執行
       setTimeout(() => {
-        console.log('广告列表变化，开始广告循环')
+        // console.log('广告列表变化，开始广告循环')
         startAdCycle()
       }, remainingTime.value * 1000)
     } else {
-      console.log('广告列表变化，开始广告循环')
+      // console.log('广告列表变化，开始广告循环')
       startAdCycle()
     }
   },
@@ -228,21 +230,19 @@ watch(
 )
 
 /*
-get window size and update media width
-**/
-const mediaWidth = ref(1094) // 初始宽度
+ * image video width
+ **/
+const mediaWidth = ref(1094)
 const updateMediaWidth = (size: { width: number; height: number }) => {
   const maxWidth = 1440
-  mediaWidth.value = size.width > maxWidth ? maxWidth : size.width // 例如，填充窗口宽度的90%
+  mediaWidth.value = size.width > maxWidth ? maxWidth : size.width
 }
-
 window.api.getWindowSize().then((size) => {
   updateMediaWidth(size)
 })
 const handleResize = (size: { width: number; height: number }) => {
   updateMediaWidth(size)
 }
-
 window.api.onWindowResize(handleResize)
 
 onBeforeUnmount(() => {

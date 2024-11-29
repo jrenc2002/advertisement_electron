@@ -3,5 +3,5 @@ dist
 out
 .DS_Store
 *.log*
-src/renderer/src/assets/ads/*
-src/renderer/src/assets/pdf/*
+src/renderer/src/assets/img/*
+src/renderer/src/assets/video/*

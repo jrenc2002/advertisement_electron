@@ -24,16 +24,16 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '../components/Top/AdvertisementTop.vue'
-import WeatherFooter from '../components/Footer/WeatherFooter.vue'
+import AdvertisementTop from '@renderer/components/top/AdvertisementTop.vue'
+import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
-import { getNotices } from '../utils/apis/notice/notice'
-import { noticeStore } from '../stores/notice_store'
+import { getNotices } from '@renderer/apis/notice/notice'
+import { noticeStore } from '@renderer/stores/notice_store'
 import { onBeforeMount } from 'vue'
-import { buildingStore } from '../stores/building_store'
+import { buildingStore } from '@renderer/stores/building_store'
 import axios from 'axios'
-import { downloadAllPDFs } from '../utils/time-task'
-import { useTaskStore } from '../stores/task_store'
+import { downloadAllPDFs } from '@renderer/utils/time-task'
+import { useTaskStore } from '@renderer/stores/task_store'
 
 const router = useRouter()
 
@@ -43,13 +43,13 @@ const handleReturn = () => {
   } else {
     router.push('/setting')
   }
-  console.log(router.currentRoute.value.path)
+  // console.log(router.currentRoute.value.path)
 }
 
 // fetch notices data
 const fetch = async () => {
   const blg_id = buildingStore().getBuilding.blg_id
-  console.log(blg_id)
+  // console.log(blg_id)
 
   try {
     const res = await getNotices({ blg_id })
