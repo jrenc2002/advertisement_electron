@@ -90,19 +90,33 @@ app.on('window-all-closed', () => {
 ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' })
-    const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', 'pdf', PathName)
-    if (!fs.existsSync(saveDir)) {
-      fs.mkdirSync(saveDir, { recursive: true })
-    }
-    const filePath = path.join(saveDir, filename)
-    const fileExists = fs.existsSync(path.join(saveDir, filename))
-    if (fileExists) {
+
+    // 获取用户数据目录
+    const userDataPath = app.getPath('userData')
+    const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName)
+
+    console.log(`[download-pdf] userDataPath: ${userDataPath}`)
+    console.log(`[download-pdf] PathName: ${PathName}`)
+    console.log(`[download-pdf] saveDir: ${saveDir}`)
+
+    // 确保保存目录存在
+    await fs.promises.mkdir(saveDir, { recursive: true })
+    console.log(`[download-pdf] Ensured directory exists: ${saveDir}`)
+
+    const sanitizedFilename = sanitizeFilename(filename)
+    const filePath = path.join(saveDir, sanitizedFilename)
+    console.log(`[download-pdf] filePath: ${filePath}`)
+
+    try {
+      await fs.promises.access(filePath)
+      console.warn(`[download-pdf] File already exists: ${filePath}`)
+      return { success: true, path: filePath }
+    } catch {
+      // 文件不存在，继续下载
+      await fs.promises.writeFile(filePath, response.data)
+      console.log(`[download-pdf] Successfully downloaded PDF to: ${filePath}`)
       return { success: true, path: filePath }
     }
-
-    fs.writeFileSync(filePath, response.data)
-    return { success: true, path: filePath }
   } catch (error: any) {
     console.error(`download pdf "${filename}" failed:`, error)
     return { success: false, error: error.message }
@@ -123,22 +137,31 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
 
-    const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', PathName)
+    const userDataPath = app.getPath('userData')
+    const saveDir = path.join(userDataPath, 'downloads', 'video', PathName)
 
-    if (!fs.existsSync(saveDir)) {
-      fs.mkdirSync(saveDir, { recursive: true })
-    }
+    console.log(`[download-video] userDataPath: ${userDataPath}`)
+    console.log(`[download-video] PathName: ${PathName}`)
+    console.log(`[download-video] saveDir: ${saveDir}`)
+    console.log(`[download-video] validatedFilename: ${validatedFilename}`)
+
+    // 确保保存目录存在
+    await fs.promises.mkdir(saveDir, { recursive: true })
+    console.log(`[download-video] Ensured directory exists: ${saveDir}`)
 
     const filePath = path.join(saveDir, validatedFilename)
+    console.log(`[download-video] filePath: ${filePath}`)
 
-    // if file exists, return the path
-    if (fs.existsSync(filePath)) {
+    try {
+      await fs.promises.access(filePath)
+      console.warn(`[download-video] File already exists: ${filePath}`)
+      return { success: true, path: filePath }
+    } catch {
+      // 文件不存在，继续下载
+      await fs.promises.writeFile(filePath, response.data)
+      console.log(`Video ${validatedFilename} download success, path: ${filePath}`)
       return { success: true, path: filePath }
     }
-
-    fs.writeFileSync(filePath, response.data)
-    return { success: true, path: filePath }
   } catch (error: any) {
     console.error(`download video "${filename}" failed:`, error)
     return { success: false, error: error.message }
@@ -175,30 +198,35 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
       return { success: false, error: `unsupported image type: ${contentType}` }
     }
 
-    // 根据 Content-Type 确定扩展名
     const extension = contentType.split('/').pop()
     const sanitizedFilename = sanitizeFilename(filename)
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
 
-    const projectRoot = path.resolve(__dirname, '../../')
-    const saveDir = path.join(projectRoot, 'src', 'renderer', 'src', 'assets', PathName)
-    // console.log(`image will be saved to: ${saveDir}`)
-    if (!fs.existsSync(saveDir)) {
-      fs.mkdirSync(saveDir, { recursive: true })
-      console.log(`create directory: ${saveDir}`)
-    }
-    const filePath = path.join(saveDir, validatedFilename)
-    // console.log(`save path: ${filePath}`)
+    const userDataPath = app.getPath('userData')
+    const saveDir = path.join(userDataPath, 'downloads', 'img', PathName)
 
-    // if file exists, return the path
-    if (fs.existsSync(filePath)) {
-      console.error(`file exists: ${filePath}`)
+    console.log(`[download-image] userDataPath: ${userDataPath}`)
+    console.log(`[download-image] PathName: ${PathName}`)
+    console.log(`[download-image] saveDir: ${saveDir}`)
+    console.log(`[download-image] validatedFilename: ${validatedFilename}`)
+
+    // 确保保存目录存在
+    await fs.promises.mkdir(saveDir, { recursive: true })
+    console.log(`[download-image] Ensured directory exists: ${saveDir}`)
+
+    const filePath = path.join(saveDir, validatedFilename)
+    console.log(`[download-image] filePath: ${filePath}`)
+
+    try {
+      await fs.promises.access(filePath)
+      console.warn(`[download-image] File already exists: ${filePath}`)
+      return { success: true, path: filePath }
+    } catch {
+      // 文件不存在，继续下载
+      await pipeline(response.data, fs.createWriteStream(filePath))
+      console.log(`Image ${validatedFilename} download success, path: ${filePath}`)
       return { success: true, path: filePath }
     }
-
-    await pipeline(response.data, fs.createWriteStream(filePath))
-    console.log(`image ${validatedFilename} download success, path: ${filePath}`)
-    return { success: true, path: filePath }
   } catch (error: any) {
     console.error(`download image "${filename}" failed:`, error)
     return { success: false, error: error.message || 'unknown error' }
