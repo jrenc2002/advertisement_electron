@@ -57,7 +57,7 @@ export const useTaskStore = defineStore('task', {
         this.resetCountdown()
         this.startCountdown(this.updateInterval * 60)
       } else {
-        notificationStore.addNotification('请输入有效的时间间隔', 'error')
+        notificationStore.addNotification('請輸入有效時間間隔', 'error')
       }
     },
     // stop time task
@@ -67,7 +67,7 @@ export const useTaskStore = defineStore('task', {
       if (this.timerId) {
         clearInterval(this.timerId) // clear time task timer
         this.timerId = null
-        notificationStore.addNotification('定时任务已停止', 'success')
+        notificationStore.addNotification('定時任務已停止', 'success')
       }
       // stop countdown
       this.stopCountdown()

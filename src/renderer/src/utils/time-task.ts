@@ -38,7 +38,7 @@ export const downloadImage = async (ad, PathName) => {
     }
   } catch (error) {
     console.error(`download image ${ad.title} failed:`, error)
-    useNotificationStore().addNotification(`下载图片失败: ${ad.title}`, 'error')
+    useNotificationStore().addNotification(`下載圖片失敗: ${ad.title}`, 'error')
     return { success: false, error: error }
   }
 }
@@ -128,7 +128,7 @@ export const downloadVideo = async (ad, PathName) => {
     }
   } catch (error) {
     console.error(`download video ${ad.title} failed:`, error)
-    useNotificationStore().addNotification(`下载视频失败: ${ad.title}`, 'error')
+    useNotificationStore().addNotification(`下載視頻失敗: ${ad.title}`, 'error')
     return { success: false, error: error }
   }
 }
@@ -161,8 +161,8 @@ export const downloadAndStorePDF = async (notice, PathName) => {
       console.error(`下载 PDF "${notice.mess_title}" 失败: ${result.error}`)
     }
   } catch (error) {
-    useNotificationStore().addNotification(`下载PDF失败: ${notice.mess_title}`, 'error')
-    console.error(`下载 PDF ${notice.mess_title} 失败:`, error)
+    useNotificationStore().addNotification(`下載PDF失敗: ${notice.mess_title}`, 'error')
+    console.error(`下載 PDF ${notice.mess_title} 失敗:`, error)
   }
 }
 
@@ -222,6 +222,6 @@ export const timeTask = async () => {
     })
     .catch((error) => {
       console.error('auto update: get notices failed:', error)
-      useNotificationStore().addNotification('更新失败', 'error')
+      useNotificationStore().addNotification('更新失敗', 'error')
     })
 }
