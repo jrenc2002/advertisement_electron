@@ -307,7 +307,7 @@ onMounted(() => {
     filter: drop-shadow(0 0 1px #fff) brightness(0) invert(1);
   }
   .weather-footer-left {
-    width: 24%;
+    width: 20%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -346,14 +346,15 @@ onMounted(() => {
     }
   }
   .weather-footer-right {
-    width: 68%;
+    width: 74%;
     display: flex;
     justify-content: row;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     padding: 10px 0;
     column-gap: 10px;
-    gap: 48px;
+    gap: 3%;
     .p-content-right-week-temperature {
       color: #fff;
       font-family: 'Adelle Sans Devanagari';

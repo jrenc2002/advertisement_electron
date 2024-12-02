@@ -63,9 +63,10 @@ export const downloadAllAds = async () => {
       } else if (ad.Advertisement.type === 'video' && ad.Advertisement.status === 'active') {
         result = await downloadVideo(ad.Advertisement, 'video')
       } else {
-        console.warn(`ad ID=${adId} is not active or type is not img or video`)
+        // console.log(`ad ID=${adId} is not active or type is not img or video`)
         status = 'skip'
       }
+
       if (status === 'noskip') {
         if (result && result.success) {
           return { adId, status: 'success' }
@@ -74,6 +75,8 @@ export const downloadAllAds = async () => {
           return { adId, status: 'failed', error: result ? result.error : 'unknown error' }
         }
       }
+
+      return { adId, status: 'skipped' }
     } catch (error: any) {
       console.error(`download ad ID=${adId} failed:`, error)
       return { adId, status: 'error', error: error || 'unknown error' }
@@ -81,24 +84,24 @@ export const downloadAllAds = async () => {
   })
 
   // Execute all download tasks in parallel and wait for all tasks to complete
-  // const results = await Promise.allSettled(downloadTasks)
+  const results = await Promise.allSettled(downloadTasks)
 
-  // // Handle each task result
+  // Handle each task result
 
-  // results.forEach((result) => {
-  //   if (result.status === 'fulfilled') {
-  //     const { adId, status, error } = result.value
-  //     if (status === 'success') {
-  //       // already handled in task, no need extra operation
-  //     } else if (status === 'failed') {
-  //       // optional: record failed ad ID
-  //       console.warn(`download ad ID=${adId} failed: ${error}`)
-  //     }
-  //   } else {
-  //     // Promise rejected, record error
-  //     console.error('download ad task error:', result.reason)
-  //   }
-  // })
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      const { adId, status, error } = result.value
+      if (status === 'success') {
+        // already handled in task, no need extra operation
+      } else if (status === 'failed') {
+        // optional: record failed ad ID
+        console.warn(`download ad ID=${adId} failed: ${error}`)
+      }
+    } else {
+      // Promise rejected, record error
+      console.error('download ad task error:', result.reason)
+    }
+  })
 
   // console.log('all ads download tasks completed')
 }
