@@ -57,9 +57,9 @@ export const downloadAllAds = async () => {
     try {
       let result: any = null
 
-      if (ad.Advertisement.type === 'img') {
+      if (ad.Advertisement.type === 'img' && ad.Advertisement.status === 'active') {
         result = await downloadImage(ad.Advertisement, 'img')
-      } else if (ad.Advertisement.type === 'video') {
+      } else if (ad.Advertisement.type === 'video' && ad.Advertisement.status === 'active') {
         result = await downloadVideo(ad.Advertisement, 'video')
       }
 

@@ -13,7 +13,12 @@ const api = {
     return ipcRenderer.invoke('download-image', { PathName, url, filename })
   },
   getWindowSize: () => ipcRenderer.invoke('get-window-size'),
-  onWindowResize: (callback) => ipcRenderer.on('window-resize', (size) => callback(size))
+  onWindowResize: (callback) => {
+    ipcRenderer.on('window-resize', (_event, size) => {
+      console.log('Received size:', size)
+      callback(size)
+    })
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

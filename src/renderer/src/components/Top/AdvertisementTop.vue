@@ -54,8 +54,10 @@ let countdownTimer: number | null = null
 const remainingTime = ref<number>(0)
 
 // ads store
-const ads = computed(() => adsStore().getAds)
-const ads_hasDownload = computed(() => adsStore().getAds_hasDownload)
+const ads = computed(() => adsStore().getAds.filter((ad) => ad.Advertisement.status === 'active'))
+const ads_hasDownload = computed(() =>
+  adsStore().getAds_hasDownload.filter((ad) => ad.Advertisement.status === 'active')
+)
 
 // currentAd
 const currentAdIndex = ref(0)
@@ -71,9 +73,7 @@ const adsHasDownloadMap = computed(() => {
   return map
 })
 
-/*
- * video and image show loop
- **/
+/* video and image show loop */
 const startAdCycle = () => {
   clearAdTimer()
   clearCountdownTimer()
@@ -243,16 +243,30 @@ watch(
  * image video width
  **/
 const mediaWidth = ref(1094)
+
 const updateMediaWidth = (size: { width: number; height: number }) => {
-  const maxWidth = 1440
+  const maxWidth = 2576
   mediaWidth.value = size.width > maxWidth ? maxWidth : size.width
+  console.log(`Updated mediaWidth to: ${mediaWidth.value}`)
 }
+
+// 获取初始窗口大小
 window.api.getWindowSize().then((size) => {
+  console.log('Initial window size:', size)
   updateMediaWidth(size)
 })
+
+// 处理窗口大小变化
 const handleResize = (size: { width: number; height: number }) => {
-  updateMediaWidth(size)
+  console.log('Window resized to:', size)
+  if (size.width && size.height) {
+    updateMediaWidth(size)
+  } else {
+    console.error('Invalid size received:', size)
+  }
 }
+
+// 注册窗口大小变化监听器
 window.api.onWindowResize(handleResize)
 
 onBeforeUnmount(() => {

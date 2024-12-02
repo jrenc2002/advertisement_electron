@@ -40,6 +40,7 @@ import { useNotificationStore } from '@renderer/stores/noticefication_store'
 import { buildingStore } from '@renderer/stores/building_store'
 import { downloadAllAds } from '@renderer/utils/time-task'
 import { useTaskStore } from '@renderer/stores/task_store'
+import { noticeStore } from '@renderer/stores/notice_store'
 const notificationStore = useNotificationStore()
 
 const router = useRouter()
@@ -59,6 +60,17 @@ watch(selectedBuilding, () => {
 const handleLogin = async () => {
   await loginBuilding(loginData.value)
     .then((res) => {
+      // 数据初始化
+      adsStore().setAds([])
+      adsStore().setAds_hasDownload([])
+      adsStore().setAds_hasDownload_path([])
+      buildingStore().setBuilding('')
+      noticeStore().clearNotices()
+      useTaskStore().stopScheduledTask()
+      localStorage.removeItem('login-username')
+      localStorage.removeItem('login-password')
+
+      // 数据初始化完成
       // console.log(res.data)
       localStorage.setItem('login-username', loginData.value.user_name)
       localStorage.setItem('login-password', loginData.value.password)

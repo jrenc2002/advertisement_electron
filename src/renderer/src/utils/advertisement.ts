@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-const baseURL = 'http://localhost:8080'
+const baseURL = 'http://test.advertisement.idreamsky.net/'
 const http: AxiosInstance = axios.create({
   baseURL,
   timeout: 100000

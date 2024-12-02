@@ -28,6 +28,8 @@
           <div v-if="ad.Advertisement.type === 'video'" class="ad-url">
             - {{ ad.Advertisement.video_url }}
           </div>
+          <div class="ad-status" v-if="ad.Advertisement.status === 'active'">- 展示</div>
+          <div class="ad-status" v-if="ad.Advertisement.status === 'inactive'">- 不展示</div>
         </div>
       </div>
       <div class="form-group">
@@ -161,7 +163,23 @@ onBeforeMount(() => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
   // white-space: nowrap;
-  width: 200px;
+  width: 100px;
+  overflow: hidden;
+  color: #000;
+  text-overflow: ellipsis;
+  font-family: 'Adelle Sans Devanagari';
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 120% */
+  letter-spacing: 2px;
+}
+.ad-status {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  // white-space: nowrap;
+  width: 100px;
   overflow: hidden;
   color: #000;
   text-overflow: ellipsis;

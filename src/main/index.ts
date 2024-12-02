@@ -42,12 +42,14 @@ function createWindow(): void {
   // 监听窗口大小变化并发送事件
   mainWindow.on('resize', () => {
     const [width, height] = mainWindow.getSize()
+    console.log(`Window resized to: width=${width}, height=${height}`)
     mainWindow.webContents.send('window-resize', { width, height })
   })
 
   // 处理获取窗口尺寸的请求
   ipcMain.handle('get-window-size', () => {
     const [width, height] = mainWindow.getSize()
+    console.log(`get-window-size: width=${width}, height=${height}`)
     return { width, height }
   })
 }
