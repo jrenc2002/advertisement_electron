@@ -42,14 +42,14 @@ function createWindow(): void {
   // 监听窗口大小变化并发送事件
   mainWindow.on('resize', () => {
     const [width, height] = mainWindow.getSize()
-    console.log(`Window resized to: width=${width}, height=${height}`)
+    // console.log(`Window resized to: width=${width}, height=${height}`)
     mainWindow.webContents.send('window-resize', { width, height })
   })
 
   // 处理获取窗口尺寸的请求
   ipcMain.handle('get-window-size', () => {
     const [width, height] = mainWindow.getSize()
-    console.log(`get-window-size: width=${width}, height=${height}`)
+    // console.log(`get-window-size: width=${width}, height=${height}`)
     return { width, height }
   })
 }
@@ -97,17 +97,17 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
     const userDataPath = app.getPath('userData')
     const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName)
 
-    console.log(`[download-pdf] userDataPath: ${userDataPath}`)
-    console.log(`[download-pdf] PathName: ${PathName}`)
-    console.log(`[download-pdf] saveDir: ${saveDir}`)
+    // console.log(`[download-pdf] userDataPath: ${userDataPath}`)
+    // console.log(`[download-pdf] PathName: ${PathName}`)
+    // console.log(`[download-pdf] saveDir: ${saveDir}`)
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
-    console.log(`[download-pdf] Ensured directory exists: ${saveDir}`)
+    // console.log(`[download-pdf] Ensured directory exists: ${saveDir}`)
 
     const sanitizedFilename = sanitizeFilename(filename)
     const filePath = path.join(saveDir, sanitizedFilename)
-    console.log(`[download-pdf] filePath: ${filePath}`)
+    // console.log(`[download-pdf] filePath: ${filePath}`)
 
     try {
       await fs.promises.access(filePath)
@@ -116,7 +116,7 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
     } catch {
       // 文件不存在，继续下载
       await fs.promises.writeFile(filePath, response.data)
-      console.log(`[download-pdf] Successfully downloaded PDF to: ${filePath}`)
+      // console.log(`[download-pdf] Successfully downloaded PDF to: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
@@ -143,16 +143,16 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     const saveDir = path.join(userDataPath, 'downloads', PathName)
 
     console.log(`[download-video] userDataPath: ${userDataPath}`)
-    console.log(`[download-video] PathName: ${PathName}`)
-    console.log(`[download-video] saveDir: ${saveDir}`)
-    console.log(`[download-video] validatedFilename: ${validatedFilename}`)
+    // console.log(`[download-video] PathName: ${PathName}`)
+    // console.log(`[download-video] saveDir: ${saveDir}`)
+    // console.log(`[download-video] validatedFilename: ${validatedFilename}`)
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
-    console.log(`[download-video] Ensured directory exists: ${saveDir}`)
+    // console.log(`[download-video] Ensured directory exists: ${saveDir}`)
 
     const filePath = path.join(saveDir, validatedFilename)
-    console.log(`[download-video] filePath: ${filePath}`)
+    // console.log(`[download-video] filePath: ${filePath}`)
 
     try {
       await fs.promises.access(filePath)
@@ -161,7 +161,7 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     } catch {
       // 文件不存在，继续下载
       await fs.promises.writeFile(filePath, response.data)
-      console.log(`Video ${validatedFilename} download success, path: ${filePath}`)
+      // console.log(`Video ${validatedFilename} download success, path: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
@@ -207,17 +207,17 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const userDataPath = app.getPath('userData')
     const saveDir = path.join(userDataPath, 'downloads', PathName)
 
-    console.log(`[download-image] userDataPath: ${userDataPath}`)
-    console.log(`[download-image] PathName: ${PathName}`)
-    console.log(`[download-image] saveDir: ${saveDir}`)
-    console.log(`[download-image] validatedFilename: ${validatedFilename}`)
+    // console.log(`[download-image] userDataPath: ${userDataPath}`)
+    // console.log(`[download-image] PathName: ${PathName}`)
+    // console.log(`[download-image] saveDir: ${saveDir}`)
+    // console.log(`[download-image] validatedFilename: ${validatedFilename}`)
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
     console.log(`[download-image] Ensured directory exists: ${saveDir}`)
 
     const filePath = path.join(saveDir, validatedFilename)
-    console.log(`[download-image] filePath: ${filePath}`)
+    // console.log(`[download-image] filePath: ${filePath}`)
 
     try {
       await fs.promises.access(filePath)

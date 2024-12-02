@@ -6,12 +6,15 @@
 <script setup lang="ts">
 import NoticePage from '@renderer/components/page/NoticePage.vue'
 import { noticeStore } from '@renderer/stores/notice_store'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const pdfSources = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string }[]>(
   []
 )
 
+watch(noticeStore().getNotices_hasDownload_common, () => {
+  pdfSources.value = noticeStore().getNotices_hasDownload_common
+})
 onMounted(() => {
   if (noticeStore().getNotices_hasDownload_common.length !== 0) {
     pdfSources.value = noticeStore().getNotices_hasDownload_common

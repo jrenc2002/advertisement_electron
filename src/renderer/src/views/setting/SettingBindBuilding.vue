@@ -41,6 +41,8 @@ import { buildingStore } from '@renderer/stores/building_store'
 import { downloadAllAds } from '@renderer/utils/time-task'
 import { useTaskStore } from '@renderer/stores/task_store'
 import { noticeStore } from '@renderer/stores/notice_store'
+import { getNotices } from '@renderer/apis/notice/notice'
+import { downloadAllPDFs } from '@renderer/utils/time-task'
 const notificationStore = useNotificationStore()
 
 const router = useRouter()
@@ -81,12 +83,35 @@ const handleLogin = async () => {
       notificationStore.addNotification('綁定成功', 'success')
       useTaskStore().setUpdateInterval(1)
       useTaskStore().startScheduledTask()
+
       router.push('/buildingDetail')
     })
     .catch((err) => {
       console.log(err)
       notificationStore.addNotification('綁定失敗', 'error')
     })
+  let blg_id = buildingStore().getBuilding.blg_id
+  // console.log(blg_id)
+  if (!blg_id) {
+    blg_id = '314100'
+    localStorage.setItem('blg_id', blg_id)
+  }
+  try {
+    const res = await getNotices({ blg_id: blg_id })
+    const notices = res.data
+    const commonNotices = notices.filter((notice) => notice.mess_type === 'common')
+    const advNotices = notices.filter((notice) => notice.mess_type === 'adv')
+    noticeStore().setNotices_common(commonNotices)
+    noticeStore().setNotices_adv(advNotices)
+    noticeStore().setNotices(notices)
+    // console.log(noticeStore().getNotices_common)
+    // console.log(noticeStore().getNotices_adv)
+    downloadAllPDFs()
+    // useNotificationStore().addNotification('獲取通知成功', 'success')
+  } catch (error) {
+    console.error('獲取通知失敗:', error)
+    // useNotificationStore().addNotification('獲取通知失敗', 'error')
+  }
 }
 </script>
 

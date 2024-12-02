@@ -15,7 +15,7 @@ const api = {
   getWindowSize: () => ipcRenderer.invoke('get-window-size'),
   onWindowResize: (callback) => {
     ipcRenderer.on('window-resize', (_event, size) => {
-      console.log('Received size:', size)
+      // console.log('Received size:', size)
       callback(size)
     })
   }

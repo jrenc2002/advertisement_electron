@@ -247,18 +247,15 @@ const mediaWidth = ref(1094)
 const updateMediaWidth = (size: { width: number; height: number }) => {
   const maxWidth = 2576
   mediaWidth.value = size.width > maxWidth ? maxWidth : size.width
-  console.log(`Updated mediaWidth to: ${mediaWidth.value}`)
 }
 
 // 获取初始窗口大小
 window.api.getWindowSize().then((size) => {
-  console.log('Initial window size:', size)
   updateMediaWidth(size)
 })
 
 // 处理窗口大小变化
 const handleResize = (size: { width: number; height: number }) => {
-  console.log('Window resized to:', size)
   if (size.width && size.height) {
     updateMediaWidth(size)
   } else {

@@ -51,6 +51,10 @@ const handleReturn = () => {
 
 // fetch notices data
 const fetch = async () => {
+  if (noticeStore().getAllNotices.length > 0) {
+    console.log(noticeStore().getAllNotices.length)
+    return
+  }
   let blg_id = buildingStore().getBuilding.blg_id
   // console.log(blg_id)
   if (!blg_id) {
@@ -65,8 +69,8 @@ const fetch = async () => {
     noticeStore().setNotices_common(commonNotices)
     noticeStore().setNotices_adv(advNotices)
     noticeStore().setNotices(notices)
-    console.log(noticeStore().getNotices_common)
-    console.log(noticeStore().getNotices_adv)
+    // console.log(noticeStore().getNotices_common)
+    // console.log(noticeStore().getNotices_adv)
     downloadAllPDFs()
     useNotificationStore().addNotification('獲取通知成功', 'success')
   } catch (error) {

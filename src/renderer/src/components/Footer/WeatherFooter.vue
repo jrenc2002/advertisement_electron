@@ -55,8 +55,8 @@
         class="weather-footer-right-item"
       >
         <!-- 这换成月份和日,不需要年份 -->
-        <p v-if="index === 0">Tomorrow</p>
-        <p v-else class="p-content-right-week-temperature">{{ forecast?.week?.slice(0, 3) }}</p>
+        <div v-if="index === 0" class="p-content-right-week-temperature">Tomorrow</div>
+        <div v-else class="p-content-right-week-temperature">{{ forecast?.week?.slice(0, 3) }}</div>
         <!-- <img
           :src="`src/assets/weatherIcons/pic${forecast?.ForecastIcon}.png`"
           :alt="`pic${forecast?.ForecastIcon}`"
@@ -297,11 +297,11 @@ onMounted(() => {
   background: linear-gradient(358.97deg, #ffa500 -12.36%, #ffffff 189.94%);
   display: flex;
   direction: row;
-  padding: 20px 30px;
+  padding: 10px 0px;
   justify-content: space-between;
   img {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     color: #fff;
     filter: brightness(0) invert(1); /* 设置 SVG 图标的颜色 */
     filter: drop-shadow(0 0 1px #fff) brightness(0) invert(1);
@@ -343,15 +343,6 @@ onMounted(() => {
         font-weight: 400;
         line-height: 30px; /* 125% */
       }
-      .p-content-right-week-temperature {
-        color: #fff;
-        font-family: 'Adelle Sans Devanagari';
-        font-size: 26px;
-        font-style: normal;
-        font-weight: 500;
-        line-height: normal;
-        letter-spacing: 0.11px;
-      }
     }
   }
   .weather-footer-right {
@@ -363,14 +354,24 @@ onMounted(() => {
     padding: 10px 0;
     column-gap: 10px;
     gap: 48px;
+    .p-content-right-week-temperature {
+      color: #fff;
+      font-family: 'Adelle Sans Devanagari';
+
+      font-size: 28px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 28px;
+      letter-spacing: 0.12px;
+    }
   }
   .weather-footer-right-item {
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     display: flex;
     flex-direction: column;
-    row-gap: 10px;
+    row-gap: 0px;
     align-items: center;
-    font-weight: 400;
+    font-weight: 800;
   }
 }
 </style>
