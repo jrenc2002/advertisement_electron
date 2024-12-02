@@ -39,6 +39,7 @@ import { useRouter } from 'vue-router'
 import { useNotificationStore } from '@renderer/stores/noticefication_store'
 import { buildingStore } from '@renderer/stores/building_store'
 import { downloadAllAds } from '@renderer/utils/time-task'
+import { useTaskStore } from '@renderer/stores/task_store'
 const notificationStore = useNotificationStore()
 
 const router = useRouter()
@@ -65,12 +66,14 @@ const handleLogin = async () => {
       // console.log(adsStore().getAds)
       downloadAllAds()
       buildingStore().setBuilding(adsStore().getAds[0].BuildingAdmin)
-      notificationStore.addNotification('绑定成功', 'success')
+      notificationStore.addNotification('綁定成功', 'success')
+      useTaskStore().setUpdateInterval(1)
+      useTaskStore().startScheduledTask()
       router.push('/buildingDetail')
     })
     .catch((err) => {
       console.log(err)
-      notificationStore.addNotification('绑定失败', 'error')
+      notificationStore.addNotification('綁定失敗', 'error')
     })
 }
 </script>

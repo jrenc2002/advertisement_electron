@@ -138,7 +138,7 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     const validatedFilename = `${path.parse(filename).name}.${extension}`
 
     const userDataPath = app.getPath('userData')
-    const saveDir = path.join(userDataPath, 'downloads', 'video', PathName)
+    const saveDir = path.join(userDataPath, 'downloads', PathName)
 
     console.log(`[download-video] userDataPath: ${userDataPath}`)
     console.log(`[download-video] PathName: ${PathName}`)
@@ -203,7 +203,7 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
 
     const userDataPath = app.getPath('userData')
-    const saveDir = path.join(userDataPath, 'downloads', 'img', PathName)
+    const saveDir = path.join(userDataPath, 'downloads', PathName)
 
     console.log(`[download-image] userDataPath: ${userDataPath}`)
     console.log(`[download-image] PathName: ${PathName}`)

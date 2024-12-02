@@ -25,6 +25,14 @@
       <!-- 倒计时显示 -->
       <div class="countdown-timer">{{ remainingTime }}秒 {{ taskStore.formattedCountdown }}</div>
     </div>
+    <div v-else>
+      <img
+        src="../../assets/img/fetch.png"
+        alt="default advertisement"
+        class="advertisement-media"
+        :width="mediaWidth"
+      />
+    </div>
   </div>
 </template>
 

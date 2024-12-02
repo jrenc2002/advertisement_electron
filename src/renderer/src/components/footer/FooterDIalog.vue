@@ -32,7 +32,7 @@ const notifications = computed(() => notificationStore.notifications)
   position: fixed;
   bottom: 225px;
   width: 100%;
-  height: 120px;
+  height: 20px;
   flex-shrink: 0;
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
   z-index: 9999;

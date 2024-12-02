@@ -62,6 +62,7 @@ import { useRouter } from 'vue-router'
 import { buildingStore } from '../../stores/building_store'
 import { useNotificationStore } from '../../stores/noticefication_store'
 import { useTaskStore } from '../../stores/task_store'
+import { noticeStore } from '../../stores/notice_store'
 
 const router = useRouter()
 const notificationStore = useNotificationStore()
@@ -78,8 +79,12 @@ const handleUnbind = async () => {
   AdsStore.setAds([])
   AdsStore.setAds_hasDownload([])
   AdsStore.setAds_hasDownload_path([])
+
   BuildingStore.setBuilding('')
+  noticeStore().clearNotices()
   taskStore.stopScheduledTask()
+  localStorage.removeItem('login-username')
+  localStorage.removeItem('login-password')
   notificationStore.addNotification('解除綁定成功', 'success')
   router.push('/setting')
 }
@@ -96,8 +101,6 @@ onBeforeMount(() => {
   color: #000;
 }
 .form-button {
-  color: #000;
-  font-family: 'Adelle Sans Devanagari';
   font-size: 24px;
   font-style: normal;
   font-weight: 700;

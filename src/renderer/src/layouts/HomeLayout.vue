@@ -68,9 +68,10 @@ const fetch = async () => {
     console.log(noticeStore().getNotices_common)
     console.log(noticeStore().getNotices_adv)
     downloadAllPDFs()
+    useNotificationStore().addNotification('獲取通知成功', 'success')
   } catch (error) {
-    console.error('获取通知失败:', error)
-    useNotificationStore().addNotification('获取通知失败', 'error')
+    console.error('獲取通知失敗:', error)
+    useNotificationStore().addNotification('獲取通知失敗', 'error')
   }
 }
 

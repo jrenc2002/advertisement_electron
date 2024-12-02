@@ -60,6 +60,13 @@ export const noticeStore = defineStore('notice', {
         return
       }
       this.notices_hasDownload_adv.push(notice)
+    },
+    clearNotices() {
+      this.notices = []
+      this.notices_common = []
+      this.notices_adv = []
+      this.notices_hasDownload_common = []
+      this.notices_hasDownload_adv = []
     }
   },
   persist: true
