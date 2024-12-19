@@ -1,6 +1,11 @@
 <!-- src/renderer/src/views/governmentNotice.vue -->
 <template>
-  <NoticePage title="法團通告" :pdf-source="pdfSources" current-route="/corporateNotice" />
+  <NoticePage 
+    title="法團通告" 
+    titleEn="Corporate Notices"
+    :pdf-source="pdfSources" 
+    current-route="/corporateNotice" 
+  />
 </template>
 
 <script setup lang="ts">
@@ -24,6 +29,30 @@ const pdfSources = [
     mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
     mess_title: '2024年10月18日国务院通告',
     mess_type: 'commn'
-  }
+  },
+    {
+    id: 2,
+    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
+    mess_title: '2024年政府公开目录',
+    mess_type: 'commn'
+  },
+  {
+    id: 3,
+    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
+    mess_title: '2024年10月18日国务院通告',
+    mess_type: 'commn'
+  },
+    {
+    id: 2,
+    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
+    mess_title: '2024年政府公开目录',
+    mess_type: 'commn'
+  },
+  {
+    id: 3,
+    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
+    mess_title: '2024年10月18日国务院通告',
+    mess_type: 'commn'
+  },
 ]
 </script>

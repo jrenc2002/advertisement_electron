@@ -1,6 +1,11 @@
 <!-- src/renderer/src/views/governmentNotice.vue -->
 <template>
-  <NoticePage title="一般通告" :pdf-source="pdfSources" current-route="/generalNotice" />
+  <NoticePage 
+    title="一般通告" 
+    titleEn="General Notices"
+    :pdf-source="pdfSources" 
+    current-route="/generalNotice" 
+  />
 </template>
 
 <script setup lang="ts">

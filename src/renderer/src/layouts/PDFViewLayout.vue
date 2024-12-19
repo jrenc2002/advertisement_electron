@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '@renderer/components/top/AdvertisementTop.vue'
+import AdvertisementTop from '@renderer/components/ADtop/AdvertisementTop.vue'
 import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
