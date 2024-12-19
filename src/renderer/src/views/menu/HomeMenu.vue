@@ -1,8 +1,8 @@
 <template>
-    <div class="h-[calc(100%-1rem)] absolute ">
-  <div class="flex  w-full h-full relative bg-[#ffffff] px-4">
+    <div class="h-[calc(100%-1rem)] absolute w-full">
+  <div class="flex w-full h-full relative bg-[#ffffff] px-4">
     <!-- 左侧导航菜单区域 -->
-    <div class="w-[25%] min-w-[300px] flex flex-col mr-4 h-min-full relative">
+    <div class="w-[25%] min-w-[300px] flex flex-col mr-6 h-min-full relative">
       <!-- 欠费查询卡片 -->
       <button
         @click="handleMenuClick('fees')"
@@ -23,7 +23,7 @@
         <p class="text-sm text-neutral/70 mt-6 text-center">查詢物業費、水電費等費用信息</p>
       </button>
 
-      <!-- 失���招领卡片 -->
+      <!-- 失物招领卡片 -->
       <button
         @click="handleMenuClick('lost-found')"
         @keydown.enter="handleMenuClick('lost-found')"
@@ -64,8 +64,10 @@
     </div>
 
     <!-- 右侧公告区域 -->
-    <div class="flex-1 bg-white rounded-xl border border-grey shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4
-            hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer"
+    <div class="flex-1 min-w-0 bg-white rounded-xl border border-grey 
+                shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4
+                hover:shadow-md hover:border-primary/20 
+                transition-all duration-200 cursor-pointer"
          @click="handleNoticeHeaderClick"
          @keydown.enter="handleNoticeHeaderClick"
          tabindex="0"

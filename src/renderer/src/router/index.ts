@@ -17,6 +17,7 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'generalNotice', component: () => import('../views/notice/GeneralNotice.vue') },
       { path: 'corporateNotice', component: () => import('../views/notice/CorporateNotice.vue') },
       { path: 'governmentNotice', component: () => import('../views/notice/GovernmentNotice.vue') },
+      { path: 'allNotice', component: () => import('../views/notice/AllNotice.vue') },
       { path: 'setting', component: () => import('../views/setting/SettingBindBuilding.vue') },
       { path: 'buildingDetail', component: () => import('../views/setting/BuildingDetail.vue') },
       { path: '/arrearage-find', name: 'ArrearageFind', component: ArrearageFind }
@@ -26,11 +27,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pdfPreview',
     component: PDFViewLayout,
     children: [{ path: '', component: () => import('../views/pdf/PdfPreview.vue') }]
-  },
-  {
-    path: '/allNotice',
-    name: 'AllNotice',
-    component: () => import('@renderer/views/notice/AllNotice.vue')
   }
 ]
 

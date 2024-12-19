@@ -1,10 +1,10 @@
 <template>
-  <div class="h-full w-full flex flex-col p-4 overflow-visible">
+  <div class="h-full w-full flex flex-col p-4 absolute">
     <!-- 导航区域 -->
     <nav class="flex justify-between items-center mb-8">
       <div class="flex items-center gap-2 p-6 bg-white rounded-xl border border-gray-200 shadow-sm w-[calc(100%)]">
         <!-- 标题部分 -->
-        <div class="flex flex-col px-6  w-60">
+        <div class="flex flex-col w-52">
           <span class="text-2xl font-bold text-primary tracking-wider">{{ title }}</span>
           <span class="text-sm font-medium text-neutral tracking-widest uppercase">{{ titleEn }}</span>
         </div>
@@ -37,8 +37,8 @@
       </div>
     </nav>
 
-    <!-- 通知列表 -->
-    <div class="flex-1 overflow-y-auto space-y-4 overflow-visible">
+    <!-- 通知列表区域，添加 pb-16 为分页腾出空间 -->
+    <div class="flex-1 overflow-y-auto space-y-4 pb-16">
       <div
         v-for="(pdf, index) in paginatedNotices"
         :key="index"
@@ -70,11 +70,15 @@
         </div>
       </div>
 
-      <!-- 添加分页控制按钮 -->
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6 pb-4">
+ 
+    </div>
+
+    <!-- 分页控制按钮，使用固定定位 -->
+    <div class="relative bottom-0 left-0 right-0 border-t border-gray-200 p-4">
+      <div class="flex justify-center items-center gap-4">
         <button
-          class="px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50
-                 bg-white border border-gray-200 hover:bg-gray-50 disabled:hover:bg-white
+          class="flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50
+                 bg-white text-primary border border-gray-200 hover:bg-gray-50 disabled:hover:bg-white
                  focus:outline-none focus:ring-2 focus:ring-blue-500"
           @click="handlePreviousPage"
           @keydown.enter="handlePreviousPage"
@@ -83,16 +87,16 @@
           aria-label="上一頁"
         >
           <i class="fas fa-chevron-left mr-2"></i>
-          上一頁
+          <span>上一頁</span>
         </button>
 
-        <span class="text-gray-600">
+        <span class="text-center text-gray-600">
           第 {{ currentPage }} 頁，共 {{ totalPages }} 頁
         </span>
 
         <button
-          class="px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50
-                 bg-white border border-gray-200 hover:bg-gray-50 disabled:hover:bg-white
+          class="flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50
+                 bg-white text-primary border border-gray-200 hover:bg-gray-50 disabled:hover:bg-white
                  focus:outline-none focus:ring-2 focus:ring-blue-500"
           @click="handleNextPage"
           @keydown.enter="handleNextPage"
@@ -100,7 +104,7 @@
           tabindex="0"
           aria-label="下一頁"
         >
-          下一頁
+          <span>下一頁</span>
           <i class="fas fa-chevron-right ml-2"></i>
         </button>
       </div>
@@ -203,11 +207,16 @@ const sortedPdfSource = computed(() => {
 
 // 添加分页相关的状态
 const currentPage = ref(1)
-const itemsPerPage = 3 // 每页显示10条通知
+const itemsPerPage = 3
 
 // 计算总页数和当前页的数据
-const totalPages = computed(() => Math.ceil(sortedPdfSource.value.length / itemsPerPage))
+const totalPages = computed(() => {
+  const total = Math.ceil(sortedPdfSource.value.length / itemsPerPage)
+  return Math.max(1, total) // 确保至少有1页
+})
+
 const paginatedNotices = computed(() => {
+  if (sortedPdfSource.value.length === 0) return []
   const start = (currentPage.value - 1) * itemsPerPage
   const end = start + itemsPerPage
   return sortedPdfSource.value.slice(start, end)
@@ -225,4 +234,10 @@ const handleNextPage = () => {
     currentPage.value++
   }
 }
+
+// 添加计算占位符数量的计算属性
+const getPlaceholderCount = computed(() => {
+  const currentPageItems = paginatedNotices.value.length
+  return currentPageItems < itemsPerPage ? itemsPerPage - currentPageItems : 0
+})
 </script>

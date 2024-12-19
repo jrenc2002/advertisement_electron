@@ -12,65 +12,44 @@ import NoticePage from '@renderer/components/page/NoticePage.vue'
 import { noticeStore } from '@renderer/stores/notice_store'
 import { onMounted, ref, watch } from 'vue'
 
-interface Notice {
-  id: number
-  mess_title: string
-  mess_type: string
-  mess_file: string
-  created_at?: string
-}
-
-const pdfSources = ref<Notice[]>([])
+const pdfSources = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string; created_at?: string }[]>([])
 
 const updateSources = () => {
-  // 获取所有通知
-  const commonNotices = noticeStore().getNotices_common.map(notice => ({
+  // 合并所有类型的通知
+  const allNotices = [
+    ...noticeStore().getNotices_hasDownload_common,
+    ...noticeStore().getNotices_hasDownload_adv,
+    ...noticeStore().getNotices_common,
+    ...noticeStore().getNotices_adv
+  ].map(notice => ({
     ...notice,
-    created_at: notice.created_at || undefined
-  }))
-  
-  const advNotices = noticeStore().getNotices_adv.map(notice => ({
-    ...notice,
-    created_at: notice.created_at || undefined
-  }))
-  
-  const downloadedCommon = noticeStore().getNotices_hasDownload_common.map(notice => ({
-    ...notice,
-    created_at: notice.created_at || undefined
-  }))
-  
-  const downloadedAdv = noticeStore().getNotices_hasDownload_adv.map(notice => ({
-    ...notice,
-    created_at: notice.created_at || undefined
+    created_at: notice.created_at || new Date().toISOString() // 确保有创建时间
   }))
 
-  // 合并所有通知并去重
-  const allNotices = [...commonNotices, ...advNotices, ...downloadedCommon, ...downloadedAdv]
-  
-  // 使用Map去重，保留最新的版本
-  const noticeMap = new Map()
+  // 使用 Map 去重，以 id 为键，保留最新的记录
+  const uniqueNotices = new Map()
   allNotices.forEach(notice => {
-    const existing = noticeMap.get(notice.id)
+    const existing = uniqueNotices.get(notice.id)
     if (!existing || (notice.created_at && (!existing.created_at || new Date(notice.created_at) > new Date(existing.created_at)))) {
-      noticeMap.set(notice.id, notice)
+      uniqueNotices.set(notice.id, notice)
     }
   })
-  
-  // 转换回数组并按时间排序
-  pdfSources.value = Array.from(noticeMap.values())
+
+  pdfSources.value = Array.from(uniqueNotices.values())
 }
 
-// 监听store变化
+// 监听 store 变化
 watch(
   [
-    () => noticeStore().getNotices_common,
-    () => noticeStore().getNotices_adv,
     () => noticeStore().getNotices_hasDownload_common,
-    () => noticeStore().getNotices_hasDownload_adv
+    () => noticeStore().getNotices_hasDownload_adv,
+    () => noticeStore().getNotices_common,
+    () => noticeStore().getNotices_adv
   ],
   () => {
     updateSources()
-  }
+  },
+  { immediate: true } // 确保首次加载时也执行
 )
 
 onMounted(() => {

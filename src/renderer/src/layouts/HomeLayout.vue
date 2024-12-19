@@ -11,7 +11,7 @@
     </div>
 
     <!-- 主内容区域 -->
-    <div class="flex-1 w-full py-4  h-full relative">
+    <div class="flex-1 h-[calc(100%-30rem-15vh)] py-4  w-full relative">
       <RouterView />
     </div>
 
