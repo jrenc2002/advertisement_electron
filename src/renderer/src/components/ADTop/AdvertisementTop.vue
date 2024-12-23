@@ -1,5 +1,5 @@
 <template>
-  <div class="top-advertise">
+  <div class="top-advertise" :class="{ 'fullscreen-mode': isFullscreen }">
     <div v-if="currentAd">
       <img
         v-if="currentAd.Advertisement.image_url && isImageVisible"
@@ -7,13 +7,13 @@
         :src="currentAd.path ? currentAd.path : currentAd.Advertisement.image_url"
         alt="Advertisement Image"
         class="advertisement-media"
-        :width="mediaWidth"
+        :width="isFullscreen ? '100%' : mediaWidth"
       />
 
       <video
         v-if="currentAd.Advertisement.video_url && isVideoVisible"
         ref="videoElement"
-        :width="mediaWidth"
+        :width="isFullscreen ? '100%' : mediaWidth"
         :src="currentAd.path ? currentAd.path : currentAd.Advertisement.video_url"
         class="advertisement-media"
         muted
@@ -30,16 +30,23 @@
         src="../../assets/img/fetch.png"
         alt="default advertisement"
         class="advertisement-media"
-        :width="mediaWidth"
+        :width="isFullscreen ? '100%' : mediaWidth"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { adsStore } from '@renderer/stores/ads_store'
-import { useTaskStore } from '@renderer/stores/task_store'
+import {
+  computed,
+  onBeforeUnmount,
+  ref,
+  watch,
+} from 'vue';
+
+import { useActivityMonitor } from '@renderer/composables/useActivityMonitor';
+import { adsStore } from '@renderer/stores/ads_store';
+import { useTaskStore } from '@renderer/stores/task_store';
 
 const taskStore = useTaskStore()
 // isImageVisible isVideoVisible
@@ -270,18 +277,42 @@ onBeforeUnmount(() => {
   clearAdTimer()
   clearCountdownTimer()
 })
+
+// 添加活动监控
+const { isFullscreen } = useActivityMonitor(300000, undefined, 10000)
+
 </script>
 
 <style scoped>
 .top-advertise {
-  width: 100vw; /* 宽度占满视口宽度 */
-  height: 438px; /* 固定高度 */
-  background-color: #f0f0f0; /* 背景颜色 */
-  display: flex; /* Flex 布局 */
-  justify-content: center; /* 水平居中 */
-  align-items: center; /* 垂直居中 */
-  position: relative; /* 相对定位 */
-  overflow: hidden; /* 隐藏溢出内容 */
+  width: 100vw;
+  height: 438px;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.fullscreen-mode .advertisement-media {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.3));
 }
 
 .advertisement-media {
