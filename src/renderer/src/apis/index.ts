@@ -136,14 +136,34 @@ const instance = axios.create({
   }
 })
 
-// 响应拦截器
+// 添加请求拦截器
+instance.interceptors.request.use(
+  (config) => {
+    // 如果是访问AWS S3，添加必要的认证头
+    if (config.url?.includes('s3.amazonaws.com')) {
+      config.headers['Authorization'] = `Bearer ${getStoredToken()}`;
+      // 可能还需要添加其他AWS认证相关的头部
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// 修改响应拦截器
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
+    if (error.response?.status === 403) {
+      console.error('访问被拒绝 (403 Forbidden):', {
+        url: error.config?.url,
+        message: error.message
+      });
+    }
+    return Promise.reject(error);
   }
-)
+);
 
 // 在现有代码的合适位置添加
 const getStoredToken = (): string | null => {

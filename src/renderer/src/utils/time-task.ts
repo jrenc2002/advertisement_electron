@@ -8,7 +8,7 @@
  */
 
 import axios from 'axios';
-
+import  api  from '@renderer/apis';
 import { useAdsStore } from '@renderer/stores/ads_store';
 import { useNoticeStore } from '@renderer/stores/notice_store';
 import { useBuildingStore } from '@renderer/stores/building_store';
@@ -25,39 +25,27 @@ export const downloadImage = async (ad, PathName) => {
   const adsStore = useAdsStore();
   
   try {
-    // 使用axios下载图片，设置1秒超时
-    const response = await axios.get(ad.image_url, {
-      responseType: 'blob',
-      timeout: 1000
-    })
+    // 使用file.path作为图片URL
+    const imageUrl = ad.file?.path;
+    if (!imageUrl) {
+      throw new Error('No image URL available');
+    }
 
-    // 获取文件类型和扩展名
-    const contentType = response.headers['content-type']
-    const extension = contentType.split('/').pop()
-
-    // 创建Blob对象和临时下载链接
-    const blob = new Blob([response.data], { type: contentType })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-
-    // 使用广告ID作为文件名
-    const filename = `${ad.ID}.${extension}`
-
-    // 调用electron的API进行实际下载
-    const result = await window.api.downloadImage(PathName, ad.image_url, filename)
+    // 使用electron API直接下载
+    const filename = `${ad.id}.${ad.file.mimeType.split('/').pop()}`;
+    const result = await window.api.downloadImage(PathName, imageUrl, filename);
 
     if (result.success && result.path) {
       adsStore.addDownloadedAd(ad, result.path);
-      return { success: true, path: result.path }
+      return { success: true, path: result.path };
     } else {
-      console.error(`download image failed: ${result.error}`)
-      return { success: false, error: result.error }
+      console.error(`download image failed: ${result.error}`);
+      return { success: false, error: result.error };
     }
   } catch (error) {
-    // 下载失败，显示通知并返回错误信息
-    console.error(`download image ${ad.title} failed:`, error)
-    useNotificationStore().addNotification(`下載圖片失敗: ${ad.title}`, 'error')
-    return { success: false, error: error }
+    console.error(`download image ${ad.title} failed:`, error);
+    useNotificationStore().addNotification(`下載圖片失敗: ${ad.title}`, 'error');
+    return { success: false, error: error };
   }
 }
 
@@ -75,41 +63,47 @@ export const downloadAllAds = async () => {
 
   // 过滤出未下载的广告
   const adsToDownload = allAds.filter(ad => !downloadedAds.includes(ad.id));
-  console.log('adsToDownload', adsToDownload)
+  console.log('adsToDownload',adsStore.getDownloadedAds ,adsToDownload)
 
   // 创建下载任务数组
   const downloadTasks = adsToDownload.map(async (ad) => {
-    const adId = ad.advertisement_id
+    // 确保ad对象存在且有正确的结构
+    if (!ad || !ad.id) {
+      console.error('Invalid advertisement object:', ad);
+      return { adId: null, status: 'error', error: 'Invalid advertisement data' };
+    }
+
+    const adId = ad.id; // 直接使用ad.id而不是ad.advertisement_id
 
     try {
-      let result: any = null
-      let status = 'noskip'
+      let result: any = null;
+      let status = 'noskip';
 
-      // 根据广告类型和状态决定下载��式
-      if (ad.Advertisement.type === 'img' && ad.Advertisement.status === 'active') {
-        result = await downloadImage(ad.Advertisement, 'img')
-      } else if (ad.Advertisement.type === 'video' && ad.Advertisement.status === 'active') {
-        result = await downloadVideo(ad.Advertisement, 'video')
+      // 根据广告类型和状态决定下载方式
+      if (ad.type === 'image') { // 修改这里，直接使用ad.type
+        result = await downloadImage(ad, 'img');
+      } else if (ad.type === 'video') {
+        result = await downloadVideo(ad, 'video');
       } else {
-        status = 'skip'
+        status = 'skip';
       }
 
       // 处理下载结果
       if (status === 'noskip') {
         if (result && result.success) {
-          return { adId, status: 'success' }
+          return { adId, status: 'success' };
         } else {
-          console.log(`download ad ID=${adId} failed: ${result ? result.error : 'unknown error'}`)
-          return { adId, status: 'failed', error: result ? result.error : 'unknown error' }
+          console.log(`download ad ID=${adId} failed: ${result ? result.error : 'unknown error'}`);
+          return { adId, status: 'failed', error: result ? result.error : 'unknown error' };
         }
       }
 
-      return { adId, status: 'skipped' }
+      return { adId, status: 'skipped' };
     } catch (error: any) {
-      console.error(`download ad ID=${adId} failed:`, error)
-      return { adId, status: 'error', error: error || 'unknown error' }
+      console.error(`download ad ID=${adId} failed:`, error);
+      return { adId, status: 'error', error: error?.message || 'unknown error' };
     }
-  })
+  });
 
   // 并行执行所有下载任务
   const results = await Promise.allSettled(downloadTasks)
@@ -137,36 +131,27 @@ export const downloadVideo = async (ad, PathName) => {
   const adsStore = useAdsStore();
   
   try {
-    // 使用axios下载视频，设置10秒超时
-    const response = await axios.get(ad.video_url, {
-      responseType: 'blob',
-      timeout: 10000
-    })
+    // 使用file.path作为视频URL
+    const videoUrl = ad.file?.path;
+    if (!videoUrl) {
+      throw new Error('No video URL available');
+    }
 
-    // 获取文件类型和扩展名
-    const contentType = response.headers['content-type']
-    const extension = contentType.split('/').pop()
-
-    // 创建Blob对象和临时下载链接
-    const blob = new Blob([response.data], { type: contentType })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-
-    const filename = `${ad.ID}.${extension}`
-    const result = await window.api.downloadVideo(PathName, ad.video_url, filename)
+    // 使用electron API直接下载
+    const filename = `${ad.id}.${ad.file.mimeType.split('/').pop()}`;
+    const result = await window.api.downloadVideo(PathName, videoUrl, filename);
 
     if (result.success && result.path) {
       adsStore.addDownloadedAd(ad, result.path);
-      return { success: true, path: result.path }
+      return { success: true, path: result.path };
     } else {
-      console.error(`download video failed: ${result.error}`)
-      return { success: false, error: result.error }
+      console.error(`download video failed: ${result.error}`);
+      return { success: false, error: result.error };
     }
   } catch (error) {
-    // 下载失败，显示通知并返回错误信息
-    console.error(`download video ${ad.title} failed:`, error)
-    useNotificationStore().addNotification(`下載視頻失敗: ${ad.title}`, 'error')
-    return { success: false, error: error }
+    console.error(`download video ${ad.title} failed:`, error);
+    useNotificationStore().addNotification(`下載視頻失敗: ${ad.title}`, 'error');
+    return { success: false, error: error };
   }
 }
 
@@ -177,30 +162,33 @@ export const downloadVideo = async (ad, PathName) => {
  */
 export const downloadAndStorePDF = async (notice, PathName) => {
   const noticeStore = useNoticeStore();
+  const notificationStore = useNotificationStore();
   
   try {
-    // 下载PDF文件
-    const response = await axios.get(notice.mess_file, {
-      responseType: 'blob'
-    })
+    const pdfUrl = notice.file.path;
+    const filename = `${notice.id}.pdf`;
     
-    // 创建Blob对象和临时下载链接
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    
-    // 使用通知ID作为文件名
-    const filename = notice.id + '.pdf'
-    const result = await window.api.downloadPDF(PathName, notice.mess_file, filename)
+    const result = await window.api.downloadPDF(PathName, pdfUrl, filename);
 
     if (result.success && result.path) {
       noticeStore.addDownloadedNotice(notice, result.path);
     } else {
-      console.error(`下载 PDF "${notice.title}" 失败: ${result.error}`);
+      // 处理下载失败的情况
+      const errorMessage = `下載PDF "${notice.title}" 失敗: ${result.error}`;
+      console.error(errorMessage);
+      notificationStore.addNotification(errorMessage, 'error');
     }
-  } catch (error) {
-    useNotificationStore().addNotification(`下載PDF失敗: ${notice.title}`, 'error');
-    console.error(`下載 PDF ${notice.title} 失敗:`, error);
+  } catch (error: any) {
+    // 特别处理403错误
+    if (error.response?.status === 403) {
+      const errorMessage = `下載PDF "${notice.title}" 失敗: 無訪問權限 (403 Forbidden)`;
+      console.error(errorMessage);
+      notificationStore.addNotification(errorMessage, 'error');
+    } else {
+      const errorMessage = `下載PDF "${notice.title}" 失敗: ${error.message || '未知錯誤'}`;
+      console.error(errorMessage);
+      notificationStore.addNotification(errorMessage, 'error');
+    }
   }
 }
 
@@ -210,75 +198,82 @@ export const downloadAndStorePDF = async (notice, PathName) => {
  */
 export const downloadAllPDFs = async () => {
   const noticeStore = useNoticeStore();
+  const notificationStore = useNotificationStore();
   
   // 获取所有通知
-  const commonNotices = noticeStore.commonNotices;
-  const governmentNotices = noticeStore.governmentNotices;
-  const systemNotices = noticeStore.systemNotices;
-  const urgentNotices = noticeStore.urgentNotices;
+  const allNotices = [
+    ...noticeStore.commonNotices,
+    ...noticeStore.governmentNotices,
+    ...noticeStore.systemNotices,
+    ...noticeStore.urgentNotices
+  ];
 
-  // 合并所有需要下载PDF的通知
-  const allNotices = [...commonNotices, ...governmentNotices, ...systemNotices, ...urgentNotices];
+  let errorCount = 0;
 
   // 下载所有通知的PDF
   for (const notice of allNotices) {
-    // 检查是否已下载
-    if (noticeStore.isNoticeDownloaded(notice.id)) {
+    try {
+      // 检查是否已下载
+      if (noticeStore.isNoticeDownloaded(notice.id)) {
+        continue;
+      }
+      
+      // 确保notice有file对象且有path
+      if (notice.fileId && notice.file && notice.file.path) {
+        await downloadAndStorePDF(notice, notice.type);
+      }
+    } catch (error: any) {
+      errorCount++;
+      console.error(`下載通知 ${notice.title} 的PDF失敗:`, error);
       continue;
     }
-    
-    if (notice.fileId && notice.file) {
-      await downloadAndStorePDF(notice, notice.type);
-    }
+  }
+
+  // 如果有错误，显示汇总通知
+  if (errorCount > 0) {
+    notificationStore.addNotification(
+      `共有 ${errorCount} 個PDF文件下載失敗，請檢查網絡連接或訪問權限`,
+      'warning',
+      5000
+    );
   }
 }
 
 /**
  * 定时任务主函数
  * 执行以下操作:
- * 1. 登录并获取广告数据
- * 2. 下载所有广告
- * 3. 获取并下载所有通知
+ * 1. 验证登录状态
+ * 2. 更新广告数据
+ * 3. 下载新的广告资源
+ * 4. 更新通知数据
+ * 5. 下载新的通知文件
  */
 export const timeTask = async () => {
   const adsStore = useAdsStore();
-  const buildingStore = useBuildingStore();
   const noticeStore = useNoticeStore();
   const notificationStore = useNotificationStore();
 
-  // 获取登录凭证
-  const user_name = localStorage.getItem('ismartId') || '';
-  const password = localStorage.getItem('password') || '';
+  const user_name = localStorage.getItem('ismartId');
+  const password = localStorage.getItem('password');
 
-  // 检查登录状态
   if (!user_name || !password) {
-    notificationStore.addNotification('update failed: please login first', 'error')
-    return
+    notificationStore.addNotification('請先登錄', 'error');
+    throw new Error('未登录状态');
   }
 
-//   登录并获取广告数据
-//   let blg_id = localStorage.getItem('blg_id')
-//   await loginBuilding({ user_name, password }).then((res) => {
-    // adsStore.setAds(res.data.advertisements_buildings)
-    // downloadAllAds()
-    // buildingStore.setBuilding(adsStore.getAllAds[0].BuildingAdmin)
-    // blg_id = buildingStore.getBuilding.blg_id
-//   })
-
-//   获取并处理通知数据
-//   await getNotices()
-    // .then((res) => {
-    //   notificationStore.addNotification('更新成功', 'success');
-    //   const notices = res.data;
-    //   
-    //   直接设置所有通知,store内部会根据类型进行分类
-    //   noticeStore.setNotices(notices);
-    //   
-    //   下载所有PDF
-    //   downloadAllPDFs();
-    // })
-    // .catch((error) => {
-    //   console.error('auto update: get notices failed:', error);
-    //   notificationStore.addNotification('更新失敗', 'error');
-    // });
-}
+  try {
+    // 1. 更新广告数据
+    adsStore.clearAds()
+    const adsResponse = await api.getAdvertisements();
+    adsStore.setAds(adsResponse.data);
+    
+    // 2. 下载新的广告资源
+    await downloadAllAds();
+    
+    notificationStore.addNotification('資源更新成功', 'success');
+  } catch (error) {
+    console.error('資源更新失敗:', error);
+    notificationStore.addNotification('資源更新失敗，請檢查網絡連接', 'error');
+    throw error;
+  }
+};

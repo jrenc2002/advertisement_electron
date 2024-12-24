@@ -18,6 +18,13 @@ import {
 
 import icon from '../../resources/icon.png?asset';
 
+// 在文件顶部添加这个函数来获取应用程序目录路径
+const getAppPath = () => {
+  // 在开发环境中使用 process.cwd()
+  // 在生产环境中使用 app.getAppPath()
+  return is.dev ? process.cwd() : path.dirname(app.getAppPath());
+}
+
 // 创建主窗口的函数
 function createWindow(): void {
   // 创建浏览器窗口实例
@@ -101,35 +108,41 @@ app.on('window-all-closed', () => {
 // 处理 PDF 下载请求
 ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   try {
-    // 下载 PDF 文件
-    const response = await axios.get(url, { responseType: 'arraybuffer' })
+    // 添加请求头
+    const response = await axios.get(url, { 
+      responseType: 'arraybuffer',
+      headers: {
+        'Accept': 'application/pdf',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
 
     // 获取用户数据目录并创建保存路径
-    const userDataPath = app.getPath('userData')
-    const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName)
+    const userDataPath = app.getPath('userData');
+    const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName);
 
     // 确保保存目录存在
-    await fs.promises.mkdir(saveDir, { recursive: true })
+    await fs.promises.mkdir(saveDir, { recursive: true });
 
     // 净化文件名并构建完整的文件路径
-    const sanitizedFilename = sanitizeFilename(filename)
-    const filePath = path.join(saveDir, sanitizedFilename)
+    const sanitizedFilename = sanitizeFilename(filename);
+    const filePath = path.join(saveDir, sanitizedFilename);
 
     // 检查文件是否已存在
     try {
-      await fs.promises.access(filePath)
-      console.warn(`[download-pdf] 文件已存在: ${filePath}`)
-      return { success: true, path: filePath }
+      await fs.promises.access(filePath);
+      console.warn(`[download-pdf] 文件已存在: ${filePath}`);
+      return { success: true, path: filePath };
     } catch {
       // 文件不存在，保存文件
-      await fs.promises.writeFile(filePath, response.data)
-      return { success: true, path: filePath }
+      await fs.promises.writeFile(filePath, response.data);
+      return { success: true, path: filePath };
     }
   } catch (error: any) {
-    console.error(`下载 PDF "${filename}" 失败:`, error)
-    return { success: false, error: error.message }
+    console.error(`下载 PDF "${filename}" 失败:`, error);
+    return { success: false, error: error.message };
   }
-})
+});
 
 // 处理视频下载请求
 ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
@@ -147,8 +160,10 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     // 处理文件扩展名和路径
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
-    const userDataPath = app.getPath('userData')
-    const saveDir = path.join(userDataPath, 'downloads', PathName)
+    
+    // 修改这里：使用应用程序目录
+    const appPath = getAppPath()
+    const saveDir = path.join(appPath, 'ad')
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
@@ -207,8 +222,10 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const extension = contentType.split('/').pop()
     const sanitizedFilename = sanitizeFilename(filename)
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
-    const userDataPath = app.getPath('userData')
-    const saveDir = path.join(userDataPath, 'downloads', PathName)
+    
+    // 修改这里：使用应用程序目录
+    const appPath = getAppPath()
+    const saveDir = path.join(appPath, 'ad')
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })

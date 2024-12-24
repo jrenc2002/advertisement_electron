@@ -35,8 +35,8 @@
                 </div>
               </div>
               <span class="px-2.5 py-1 rounded-full text-xs"
-                :class="ad.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
-                {{ ad.active ? '展示中' : '未展示' }}
+                :class="ad.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+                {{ ad.status === 'active' ? '展示中' : '未展示' }}
               </span>
             </div>
           </div>
@@ -140,7 +140,6 @@ import {
   ref,
 } from 'vue';
 import { useRouter } from 'vue-router';
-import type { Building } from '@renderer/stores/building_store';
 import type { Advertisement, Notice } from '@renderer/apis';
 import { useAdsStore } from '@renderer/stores/ads_store';
 import { useBuildingStore } from '@renderer/stores/building_store';
