@@ -45,35 +45,56 @@ import {
 } from 'vue';
 
 import { useActivityMonitor } from '@renderer/composables/useActivityMonitor';
-import { adsStore } from '@renderer/stores/ads_store';
+import { useAdsStore } from '@renderer/stores/ads_store';
 import { useTaskStore } from '@renderer/stores/task_store';
+import type { Advertisement } from '@renderer/apis';
+import { useAdCycle } from '@renderer/composables/useAdCycle';
+import { useVideoPlayer } from '@renderer/composables/useVideoPlayer';
 
 const taskStore = useTaskStore()
 // isImageVisible isVideoVisible
 const isImageVisible = ref(true)
 const isVideoVisible = ref(false)
-const videoElement = ref<HTMLVideoElement | null>(null)
-const imageElement = ref<HTMLImageElement | null>(null)
+const { 
+  adTimer,
+  countdownTimer,
+  remainingTime,
+  clearAdTimer,
+  clearCountdownTimer,
+  startCountdown 
+} = useAdCycle()
 
-// timer
-let adTimer: number | null = null
-let countdownTimer: number | null = null
-const remainingTime = ref<number>(0)
+const {
+  videoElement,
+  playVideo,
+  stopVideo
+} = useVideoPlayer()
 
 // ads store
-const ads = computed(() => adsStore().getAds.filter((ad) => ad.Advertisement.status === 'active'))
+const adsStore = useAdsStore()
+
+const ads = computed(() => 
+  adsStore.getActiveAds.filter(ad => ad.active)
+)
+
 const ads_hasDownload = computed(() =>
-  adsStore().getAds_hasDownload.filter((ad) => ad.Advertisement.status === 'active')
+  adsStore.getDownloadedAds.filter(ad => ad.advertisement.active)
 )
 
 // currentAd
 const currentAdIndex = ref(0)
-const currentAd = ref<any>(null)
+interface CurrentAd {
+  Advertisement: Advertisement
+  path?: string
+  play_duration?: number
+}
+
+const currentAd = ref<CurrentAd | null>(null)
 const adsHasDownloadMap = computed(() => {
   const map = new Map<number, any>()
   if (ads_hasDownload.value) {
     ads_hasDownload.value.forEach((ad) => {
-      map.set(ad.Advertisement?.ID, ad)
+      map.set(ad.advertisement.id, ad)
     })
   }
   // console.log('adsHasDownloadMap', map)
@@ -81,59 +102,32 @@ const adsHasDownloadMap = computed(() => {
 })
 
 /* video and image show loop */
-const startAdCycle = () => {
+const startAdCycle = async () => {
   clearAdTimer()
   clearCountdownTimer()
 
-  if (ads.value.length > 0) {
-    const ad = ads.value[currentAdIndex.value]
-    const downloadedAd = adsHasDownloadMap.value?.get(ad.Advertisement.ID)
-    if (downloadedAd) {
-      currentAd.value = downloadedAd
-      // console.log('播放下载的', currentAd.value)
-    } else {
-      currentAd.value = ad
-      // console.log('播放未下载的', currentAd.value)
-    }
-  }
-  if (!currentAd.value) return
+  if (!ads.value.length) return
 
-  let playDuration = 5
-  if (!currentAd.value.path) {
-    playDuration = currentAd.value.play_duration
-  } else {
-    playDuration = currentAd.value.Advertisement.video_duration
-  }
-  // console.log('playDuration', playDuration)
-  remainingTime.value = playDuration
-  startCountdown(playDuration)
+  const ad = ads.value[currentAdIndex.value]
+  const downloadedAd = adsHasDownloadMap.value?.get(ad.id)
+  currentAd.value = downloadedAd || ad
 
-  // check ad has image and video
-  let hasImage = false
-  let hasVideo = false
-  if (currentAd.value.Advertisement.type === 'img') {
-    hasImage = !!currentAd.value.Advertisement.image_url
-    hasVideo = false
-  } else if (currentAd.value.Advertisement.type === 'video') {
-    hasImage = false
-    hasVideo = !!currentAd.value.Advertisement.video_url
-  }
-  // console.log('hasImage', hasImage)
-  // console.log('hasVideo', hasVideo)
+  const playDuration = currentAd.value?.path 
+    ? currentAd.value.Advertisement.duration 
+    : currentAd.value?.play_duration ?? 5
 
-  if (hasImage) {
-    showImage()
-    adTimer = window.setTimeout(() => {
-      nextAd()
-    }, playDuration * 1000)
-  } else if (hasVideo) {
+  startCountdown(playDuration, nextAd)
+
+  const isVideo = currentAd.value?.Advertisement.type === 'video'
+  
+  if (isVideo) {
     showVideo()
-    adTimer = window.setTimeout(() => {
-      nextAd()
-    }, playDuration * 1000)
+    await playVideo()
   } else {
-    nextAd()
+    showImage()
   }
+
+  adTimer.value = window.setTimeout(nextAd, playDuration * 1000)
 }
 
 const showImage = () => {
@@ -182,39 +176,6 @@ const nextAd = () => {
   startAdCycle()
 }
 
-// clear ad cycle timer
-const clearAdTimer = () => {
-  if (adTimer !== null) {
-    clearTimeout(adTimer)
-    adTimer = null
-  }
-}
-
-// start countdown
-const startCountdown = (duration: number) => {
-  clearCountdownTimer()
-  remainingTime.value = duration
-
-  countdownTimer = window.setInterval(() => {
-    if (remainingTime.value > 0) {
-      remainingTime.value -= 1
-    } else {
-      clearCountdownTimer()
-      if (videoElement.value) {
-        videoElement.value.pause()
-      }
-      nextAd()
-    }
-  }, 1000)
-}
-
-// clear countdown timer
-const clearCountdownTimer = () => {
-  if (countdownTimer !== null) {
-    clearInterval(countdownTimer)
-    countdownTimer = null
-  }
-}
 // watch ads change
 watch(
   ads,
@@ -276,6 +237,7 @@ window.api.onWindowResize(handleResize)
 onBeforeUnmount(() => {
   clearAdTimer()
   clearCountdownTimer()
+  stopVideo()
 })
 
 // 添加活动监控

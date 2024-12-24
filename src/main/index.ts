@@ -1,190 +1,193 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import axios from 'axios'
-import fs from 'fs'
-import path from 'path'
-import { pipeline } from 'stream/promises'
+// 导入必要的依赖
+import axios from 'axios';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  shell,
+} from 'electron';
+import fs from 'fs';
+import path, { join } from 'path';
+import { pipeline } from 'stream/promises';
 
+import {
+  electronApp,
+  is,
+  optimizer,
+} from '@electron-toolkit/utils';
+
+import icon from '../../resources/icon.png?asset';
+
+// 创建主窗口的函数
 function createWindow(): void {
-  // Create the browser window.
+  // 创建浏览器窗口实例
   const mainWindow = new BrowserWindow({
-    width: 1094,
-    height: 1957,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    width: 1024,
+    height: 2048,
+    show: false, // 初始时隐藏窗口
+    autoHideMenuBar: true, // 自动隐藏菜单栏
+    ...(process.platform === 'linux' ? { icon } : {}), // 在 Linux 平台设置图标
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      webSecurity: false
+      preload: join(__dirname, '../preload/index.js'), // 预加载脚本
+      sandbox: false, // 禁用沙箱
+      webSecurity: false // 禁用 Web 安全性（不推荐在生产环境中使用）
     }
   })
 
+  // 当窗口准备好时显示
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
 
+  // 处理新窗口打开请求，在默认浏览器中打开链接
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // 根据环境加载不同的内容
+  // 开发环境：加载开发服务器 URL
+  // 生产环境：加载本地 HTML 文件
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  // 监听窗口大小变化并发送事件
+  // 监听窗口大小变化事件
   mainWindow.on('resize', () => {
     const [width, height] = mainWindow.getSize()
-    // console.log(`Window resized to: width=${width}, height=${height}`)
     mainWindow.webContents.send('window-resize', { width, height })
   })
 
-  // 处理获取窗口尺寸的请求
+  // 处理获取窗口尺寸的 IPC 请求
   ipcMain.handle('get-window-size', () => {
     const [width, height] = mainWindow.getSize()
-    // console.log(`get-window-size: width=${width}, height=${height}`)
     return { width, height }
   })
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// 当 Electron 完成初始化时执行
 app.whenReady().then(() => {
-  // Set app user model id for windows
+  // 设置 Windows 应用程序用户模型 ID
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+  // 监听窗口创建事件，设置快捷键
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
+  // IPC 测试
   ipcMain.on('ping', () => console.log('pong'))
 
+  // 创建主窗口
   createWindow()
 
+  // macOS 特定：点击 dock 图标时重新创建窗口
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// 处理窗口关闭事件
+// 在 macOS 上，除非用户使用 Cmd + Q 退出，
+// 否则应用程序和菜单栏会保持活动状态
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-// download pdf
+
+// 处理 PDF 下载请求
 ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
   try {
+    // 下载 PDF 文件
     const response = await axios.get(url, { responseType: 'arraybuffer' })
 
-    // 获取用户数据目录
+    // 获取用户数据目录并创建保存路径
     const userDataPath = app.getPath('userData')
     const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName)
 
-    // console.log(`[download-pdf] userDataPath: ${userDataPath}`)
-    // console.log(`[download-pdf] PathName: ${PathName}`)
-    // console.log(`[download-pdf] saveDir: ${saveDir}`)
-
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
-    // console.log(`[download-pdf] Ensured directory exists: ${saveDir}`)
 
+    // 净化文件名并构建完整的文件路径
     const sanitizedFilename = sanitizeFilename(filename)
     const filePath = path.join(saveDir, sanitizedFilename)
-    // console.log(`[download-pdf] filePath: ${filePath}`)
 
+    // 检查文件是否已存在
     try {
       await fs.promises.access(filePath)
-      console.warn(`[download-pdf] File already exists: ${filePath}`)
+      console.warn(`[download-pdf] 文件已存在: ${filePath}`)
       return { success: true, path: filePath }
     } catch {
-      // 文件不存在，继续下载
+      // 文件不存在，保存文件
       await fs.promises.writeFile(filePath, response.data)
-      // console.log(`[download-pdf] Successfully downloaded PDF to: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
-    console.error(`download pdf "${filename}" failed:`, error)
+    console.error(`下载 PDF "${filename}" 失败:`, error)
     return { success: false, error: error.message }
   }
 })
 
-// download video
+// 处理视频下载请求
 ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
   try {
+    // 下载视频文件
     const response = await axios.get(url, { responseType: 'arraybuffer' })
     const contentType = response.headers['content-type']
 
+    // 检查视频类型是否支持
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/avi', 'video/mkv']
-
     if (!allowedVideoTypes.includes(contentType)) {
-      return { success: false, error: `unsupported video type: ${contentType}` }
+      return { success: false, error: `不支持的视频类型: ${contentType}` }
     }
+
+    // 处理文件扩展名和路径
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
-
     const userDataPath = app.getPath('userData')
     const saveDir = path.join(userDataPath, 'downloads', PathName)
 
-    console.log(`[download-video] userDataPath: ${userDataPath}`)
-    // console.log(`[download-video] PathName: ${PathName}`)
-    // console.log(`[download-video] saveDir: ${saveDir}`)
-    // console.log(`[download-video] validatedFilename: ${validatedFilename}`)
-
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
-    // console.log(`[download-video] Ensured directory exists: ${saveDir}`)
-
     const filePath = path.join(saveDir, validatedFilename)
-    // console.log(`[download-video] filePath: ${filePath}`)
 
+    // 检查文件是否已存在
     try {
       await fs.promises.access(filePath)
-      console.warn(`[download-video] File already exists: ${filePath}`)
+      console.warn(`[download-video] 文件已存在: ${filePath}`)
       return { success: true, path: filePath }
     } catch {
-      // 文件不存在，继续下载
+      // 文件不存在，保存文件
       await fs.promises.writeFile(filePath, response.data)
-      // console.log(`Video ${validatedFilename} download success, path: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
-    console.error(`download video "${filename}" failed:`, error)
+    console.error(`下载视频 "${filename}" 失败:`, error)
     return { success: false, error: error.message }
   }
 })
 
-// sanitize filename
+// 文件名净化函数：移除不安全的字符
 const sanitizeFilename = (filename: string): string => {
   return filename.replace(/[^a-zA-Z0-9_\-.]/g, '_')
 }
 
-// download image
+// 处理图片下载请求
 ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => {
   try {
+    // 下载图片文件
     const response = await axios.get(url, { responseType: 'stream', timeout: 10000 })
     let contentType = response.headers['content-type']
 
+    // 处理内容类型
     if (contentType.includes(';')) {
       contentType = contentType.split(';')[0].trim()
     }
 
+    // 检查图片类型是否支持
     const allowedImageTypes = [
       'image/jpeg',
       'image/png',
@@ -196,44 +199,39 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     ]
 
     if (!allowedImageTypes.includes(contentType)) {
-      console.error(`unsupported image type: ${contentType}`)
-      return { success: false, error: `unsupported image type: ${contentType}` }
+      console.error(`不支持的图片类型: ${contentType}`)
+      return { success: false, error: `不支持的图片类型: ${contentType}` }
     }
 
+    // 处理文件扩展名和路径
     const extension = contentType.split('/').pop()
     const sanitizedFilename = sanitizeFilename(filename)
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
-
     const userDataPath = app.getPath('userData')
     const saveDir = path.join(userDataPath, 'downloads', PathName)
 
-    // console.log(`[download-image] userDataPath: ${userDataPath}`)
-    // console.log(`[download-image] PathName: ${PathName}`)
-    // console.log(`[download-image] saveDir: ${saveDir}`)
-    // console.log(`[download-image] validatedFilename: ${validatedFilename}`)
-
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
-    console.log(`[download-image] Ensured directory exists: ${saveDir}`)
+    console.log(`[download-image] 确保目录存在: ${saveDir}`)
 
     const filePath = path.join(saveDir, validatedFilename)
-    // console.log(`[download-image] filePath: ${filePath}`)
 
+    // 检查文件是否已存在
     try {
       await fs.promises.access(filePath)
-      console.warn(`[download-image] File already exists: ${filePath}`)
+      console.warn(`[download-image] 文件已存在: ${filePath}`)
       return { success: true, path: filePath }
     } catch {
-      // 文件不存在，继续下载
+      // 文件不存在，使用流式下载保存文件
       await pipeline(response.data, fs.createWriteStream(filePath))
-      console.log(`Image ${validatedFilename} download success, path: ${filePath}`)
+      console.log(`图片 ${validatedFilename} 下载成功，路径: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
-    console.error(`download image "${filename}" failed:`, error)
-    return { success: false, error: error.message || 'unknown error' }
+    console.error(`下载图片 "${filename}" 失败:`, error)
+    return { success: false, error: error.message || '未知错误' }
   }
 })
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+// 这里可以添加应用程序的其他主进程代码
+// 也可以将它们放在单独的文件中并在这里导入

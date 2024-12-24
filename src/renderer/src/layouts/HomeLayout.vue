@@ -23,49 +23,22 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '@renderer/components/ADtop/AdvertisementTop.vue'
-import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue'
-import NavBar from '@renderer/components/NavBar/NavBar.vue'
-import { onBeforeMount } from 'vue'
-import { getNotices } from '@renderer/apis/notice/notice'
-import { noticeStore } from '@renderer/stores/notice_store'
-import { buildingStore } from '@renderer/stores/building_store'
-import { downloadAllPDFs } from '@renderer/utils/time-task'
-import { useTaskStore } from '@renderer/stores/task_store'
-import { useNotificationStore } from '@renderer/stores/noticefication_store'
+import { onBeforeMount } from 'vue';
 
-const fetch = async () => {
-  if (noticeStore().getAllNotices.length > 0) {
-    console.log(noticeStore().getAllNotices.length)
-    return
-  }
+import AdvertisementTop from '@renderer/components/ADTop/AdvertisementTop.vue';
+import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue';
+import NavBar from '@renderer/components/NavBar/NavBar.vue';
+import { useTaskStore } from '@renderer/stores/task_store';
 
-  let blg_id = buildingStore().getBuilding.blg_id
-  if (!blg_id) {
-    blg_id = '314100'
-    localStorage.setItem('blg_id', blg_id)
-  }
-
-  try {
-    const res = await getNotices({ blg_id: blg_id })
-    const notices = res.data
-    const commonNotices = notices.filter((notice) => notice.mess_type === 'common')
-    const advNotices = notices.filter((notice) => notice.mess_type === 'adv')
-    noticeStore().setNotices_common(commonNotices)
-    noticeStore().setNotices_adv(advNotices)
-    noticeStore().setNotices(notices)
-    downloadAllPDFs()
-    useNotificationStore().addNotification('獲取通知成功', 'success')
-  } catch (error) {
-    console.error('獲取通知失敗:', error)
-    useNotificationStore().addNotification('獲取通知失敗', 'error')
-  }
-}
+const taskStore = useTaskStore()
 
 onBeforeMount(() => {
-  fetch()
-  if (localStorage.getItem('updateInterval')) {
-    useTaskStore().initialize()
+  try {
+    if (localStorage.getItem('updateInterval')) {
+      taskStore.initialize()
+    }
+  } catch (error) {
+    console.error('初始化任务存储时出错:', error)
   }
 })
 </script>

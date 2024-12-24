@@ -1,6 +1,8 @@
-import { defineStore } from 'pinia'
-import { useNotificationStore } from './noticefication_store'
-import { timeTask } from '../utils/time-task'
+import { defineStore } from 'pinia';
+
+import { timeTask } from '@renderer/utils/time-task';
+
+import { useNotificationStore } from './noticefication_store';
 
 export const useTaskStore = defineStore('task', {
   state: () => ({
