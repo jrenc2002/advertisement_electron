@@ -1,35 +1,42 @@
 <template>
-  <div class="top-advertise" :class="{ 'fullscreen-mode': isFullscreen }">
+  <div 
+    class="w-screen h-[438px] bg-gray-100 flex justify-center items-center relative overflow-hidden transition-all duration-300"
+    :class="{ 'fixed top-0 left-0 w-screen h-screen z-[9999] bg-black/75 backdrop-blur-md': isFullscreen }"
+  >
     <div v-if="currentAd">
       <img
-        v-if="currentAd.Advertisement.image_url && isImageVisible"
+        v-if="currentAd.type === 'image' && isImageVisible"
         ref="imageElement"
-        :src="currentAd.path ? currentAd.path : currentAd.Advertisement.image_url"
+        :src="currentAd.path ? currentAd.path : currentAd.file.path"
         alt="Advertisement Image"
-        class="advertisement-media"
+        class="block rounded-lg max-h-full object-contain"
+        :class="{ 'w-screen h-screen object-contain drop-shadow-lg': isFullscreen }"
         :width="isFullscreen ? '100%' : mediaWidth"
       />
 
       <video
-        v-if="currentAd.Advertisement.video_url && isVideoVisible"
+        v-if="currentAd.type === 'video' && isVideoVisible"
         ref="videoElement"
         :width="isFullscreen ? '100%' : mediaWidth"
-        :src="currentAd.path ? currentAd.path : currentAd.Advertisement.video_url"
-        class="advertisement-media"
+        :src="currentAd.path ? currentAd.path : currentAd.file.path"
+        class="block rounded-lg h-[438px] object-contain"
+        :class="{ 'w-screen h-screen object-contain drop-shadow-lg': isFullscreen }"
         muted
         autoplay
         loop
         @ended="handleVideoEnd"
       ></video>
 
-      <!-- 倒计时显示 -->
-      <div class="countdown-timer">{{ remainingTime }}秒 {{ taskStore.formattedCountdown }}</div>
+      <div class="absolute bottom-2.5 right-2.5 bg-black/50 text-white px-2.5 py-1.5 rounded text-sm">
+        {{ remainingTime }}秒
+      </div>
     </div>
     <div v-else>
       <img
         src="../../assets/img/fetch.png"
         alt="default advertisement"
-        class="advertisement-media"
+        class="block rounded-lg max-h-full object-contain"
+        :class="{ 'w-screen h-screen object-contain drop-shadow-lg': isFullscreen }"
         :width="isFullscreen ? '100%' : mediaWidth"
       />
     </div>
@@ -74,19 +81,17 @@ const {
 const adsStore = useAdsStore()
 
 const ads = computed(() => 
-  adsStore.getActiveAds.filter(ad => ad.active)
+  adsStore.getActiveAds
 )
 
 const ads_hasDownload = computed(() =>
-  adsStore.getDownloadedAds.filter(ad => ad.advertisement.active)
+  adsStore.getDownloadedAds
 )
 
 // currentAd
 const currentAdIndex = ref(0)
-interface CurrentAd {
-  Advertisement: Advertisement
+interface CurrentAd extends Advertisement {
   path?: string
-  play_duration?: number
 }
 
 const currentAd = ref<CurrentAd | null>(null)
@@ -94,10 +99,12 @@ const adsHasDownloadMap = computed(() => {
   const map = new Map<number, any>()
   if (ads_hasDownload.value) {
     ads_hasDownload.value.forEach((ad) => {
-      map.set(ad.advertisement.id, ad)
+      map.set(ad.advertisement.id, {
+        ...ad.advertisement,
+        path: ad.downloadPath
+      })
     })
   }
-  // console.log('adsHasDownloadMap', map)
   return map
 })
 
@@ -112,13 +119,11 @@ const startAdCycle = async () => {
   const downloadedAd = adsHasDownloadMap.value?.get(ad.id)
   currentAd.value = downloadedAd || ad
 
-  const playDuration = currentAd.value?.path 
-    ? currentAd.value.Advertisement.duration 
-    : currentAd.value?.play_duration ?? 5
+  const playDuration = currentAd.value?.duration || 5
 
   startCountdown(playDuration, nextAd)
 
-  const isVideo = currentAd.value?.Advertisement.type === 'video'
+  const isVideo = currentAd.value?.type === 'video'
   
   if (isVideo) {
     showVideo()
@@ -146,7 +151,7 @@ const showVideo = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            // console.log('视频播放成功')
+            // console.log('视频播��成功')
           })
           .catch((err) => {
             // console.log('播放时间', videoElement.value!.currentTime)
@@ -196,7 +201,7 @@ watch(
     if (remainingTime.value > 0) {
       //延時執行
       setTimeout(() => {
-        // console.log('广告列表变化，开始广告循环')
+        // console.log('广告列表变化，开始广告循��')
         startAdCycle()
       }, remainingTime.value * 1000)
     } else {
@@ -244,55 +249,3 @@ onBeforeUnmount(() => {
 const { isFullscreen } = useActivityMonitor(300000, undefined, 10000)
 
 </script>
-
-<style scoped>
-.top-advertise {
-  width: 100vw;
-  height: 438px;
-  background-color: #f0f0f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.fullscreen-mode {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.fullscreen-mode .advertisement-media {
-  width: 100vw !important;
-  height: 100vh !important;
-  object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.3));
-}
-
-.advertisement-media {
-  height: auto; /* 保持纵横比 */
-  max-height: 100%; /* 防止超过容器高度 */
-  display: block;
-  border-radius: 10px;
-  object-fit: contain; /* 缩放以适应容器，不裁剪 */
-}
-
-.countdown-timer {
-  position: absolute; /* 绝对定位，相对于 .top-advertise 容器 */
-  bottom: 10px; /* 距离底部10px */
-  right: 10px; /* 距离右侧10px */
-  background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
-  color: #fff; /* 白色文字 */
-  padding: 5px 10px; /* 内边距 */
-  border-radius: 5px; /* 圆角边框 */
-  font-size: 14px; /* 字体大小 */
-}
-</style>
