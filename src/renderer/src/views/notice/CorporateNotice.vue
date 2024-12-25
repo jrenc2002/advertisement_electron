@@ -1,4 +1,4 @@
-<!-- src/renderer/src/views/governmentNotice.vue -->
+<!-- src/renderer/src/views/notice/CorporateNotice.vue -->
 <template>
   <NoticePage 
     title="法團通告" 
@@ -10,52 +10,42 @@
 
 <script setup lang="ts">
 import NoticePage from '@renderer/components/page/NoticePage.vue'
-import { ref } from 'vue'
+import { useNoticeStore } from '@renderer/stores/notice_store'
+import { onMounted, ref, watch } from 'vue'
 
-// 使用 ref 来管理数据，确保响应式更新
-const pdfSources = ref([
-  {
-    id: 1,
-    mess_file: 'https://data.weather.gov.hk/weatherAPI/doc/HKO_Open_Data_API_Documentation_tc.pdf',
-    mess_title: '香港天文台',
-    mess_type: 'corporate',
-    created_at: '2024-01-01T10:00:00' // 添加创建时间以支持排序
+const pdfSources = ref<any[]>([])
+const noticeStore = useNoticeStore()
+
+const updateSources = () => {
+  const notices = noticeStore.systemNotices.map(notice => ({
+    id: notice.id,
+    title: notice.title,
+    type: notice.type,
+    file: notice.file,
+    created_at: notice.created_at || new Date().toISOString(),
+    description: notice.description
+  }))
+
+  const uniqueNotices = new Map()
+  notices.forEach(notice => {
+    const existing = uniqueNotices.get(notice.id)
+    if (!existing || (notice.created_at && (!existing.created_at || new Date(notice.created_at) > new Date(existing.created_at)))) {
+      uniqueNotices.set(notice.id, notice)
+    }
+  })
+
+  pdfSources.value = Array.from(uniqueNotices.values())
+}
+
+watch(
+  () => noticeStore.systemNotices,
+  () => {
+    updateSources()
   },
-  {
-    id: 2,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
-    mess_title: '2024年政府公开目录',
-    mess_type: 'commn'
-  },
-  {
-    id: 3,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
-    mess_title: '2024年10月18日国务院通告',
-    mess_type: 'commn'
-  },
-    {
-    id: 2,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
-    mess_title: '2024年政府公开目录',
-    mess_type: 'commn'
-  },
-  {
-    id: 3,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
-    mess_title: '2024年10月18日国务院通告',
-    mess_type: 'commn'
-  },
-    {
-    id: 2,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2023_PDF.pdf',
-    mess_title: '2024年政府公开目录',
-    mess_type: 'commn'
-  },
-  {
-    id: 3,
-    mess_file: 'https://www.gov.cn/zhengce/pdfFile/2022_PDF.pdf',
-    mess_title: '2024年10月18日国务院通告',
-    mess_type: 'commn'
-  },
-])
+  { immediate: true }
+)
+
+onMounted(() => {
+  updateSources()
+})
 </script>

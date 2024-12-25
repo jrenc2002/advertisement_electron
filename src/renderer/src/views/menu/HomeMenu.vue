@@ -79,8 +79,8 @@
       
       <div class="flex flex-col gap-4">
         <div 
-          v-for="(notice, index) in notices" 
-          :key="index"
+          v-for="notice in notices" 
+          :key="notice.id"
           class="bg-neutral/5 rounded-lg p-5 transition-all duration-200 
                  hover:shadow-md border border-neutral/10 
                  hover:border-primary/20 cursor-pointer"
@@ -93,7 +93,7 @@
             <div class="flex items-center gap-3">
               <h2 class="text-base font-semibold text-primary">{{ notice.title }}</h2>
               <div 
-                v-if="notice.isUrgent" 
+                v-if="notice.type === 'urgent'" 
                 class="px-3 py-1 rounded-full text-xs 
                        text-white bg-[#F44336] flex items-center gap-2"
               >
@@ -101,18 +101,17 @@
                 紧急通知
               </div>
             </div>
-            <span class="text-sm text-neutral/70">{{ notice.date }}</span>
+            <span class="text-sm text-neutral/70">{{ notice.formattedDate }}</span>
           </div>
           <p class="text-sm text-neutral/80 leading-relaxed">{{ notice.description }}</p>
-          
-          <!-- 添加金色强调的重要信息标记 -->
-          <div 
-            v-if="notice.important" 
-            class="mt-3 text-[#FFA000] text-sm font-medium flex items-center gap-2"
-          >
-            <span class="material-icons text-base">star</span>
-            重要信息
-          </div>
+        </div>
+
+        <!-- 当没有通知时显示的提示 -->
+        <div 
+          v-if="notices.length === 0" 
+          class="text-center py-8 text-neutral/60"
+        >
+          暫無通知
         </div>
       </div>
     </div>
@@ -121,33 +120,77 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { noticeStore } from '@renderer/stores/notice_store'
+import { useNoticeStore } from '@renderer/stores/notice_store'
+import type { Notice } from '@renderer/apis'
+
+interface NoticeWithFormattedDate extends Notice {
+  formattedDate: string;
+}
 
 const router = useRouter()
 
-interface Notice {
-  title: string
-  date: string
-  description: string
-  isUrgent: boolean
-  important: boolean
-  mess_file?: string // 添加可选的文件链接字段
+// 修改notices的类型和初始数据
+const notices = ref<NoticeWithFormattedDate[]>([])
+const noticeStore = useNoticeStore()
+
+// 修改获取通知数据的方法
+const loadNotices = () => {
+  const allNotices = [
+    ...noticeStore.urgentNotices,
+    ...noticeStore.commonNotices,
+    ...noticeStore.governmentNotices,
+    ...noticeStore.systemNotices
+  ]
+  
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '無時間'
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('zh-HK', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  }
+  
+  notices.value = allNotices
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return dateB - dateA
+    })
+    .slice(0, 5)
+    .map(notice => ({
+      id: notice.id,
+      title: notice.title,
+      type: notice.type,
+      description: notice.description,
+      createdAt: notice.createdAt,
+      updatedAt: notice.updatedAt,
+      deletedAt: notice.deletedAt,
+      isPublic: notice.isPublic,
+      fileId: notice.fileId,
+      file: notice.file,
+      fileType: notice.fileType,
+      formattedDate: formatDate(notice.createdAt)
+    }))
 }
 
-const notices = ref<Notice[]>([
-  {
-    title: '缴取暖费优惠通知',
-    date: '2024-12-23',
-    description: '即日起至月底，预缴纳取暖费可享受8折优惠，欢迎各位业主把握机会。',
-    isUrgent: true,
-    important: true,
-    mess_file: 'path/to/heating-notice.pdf' // 添加对应的文件路径
+// 添加自动刷新功能
+watch(
+  [
+    () => noticeStore.urgentNotices,
+    () => noticeStore.commonNotices,
+    () => noticeStore.governmentNotices,
+    () => noticeStore.systemNotices
+  ],
+  () => {
+    loadNotices()
   },
-  // ... 其他通知保持不变，添加 mess_file 字段
-])
+  { immediate: true }
+)
 
 const handleMenuClick = (route: string) => {
   if (route === 'fees') {
@@ -168,13 +211,17 @@ const handleNoticeHeaderClick = () => {
   router.push('/generalNotice')
 }
 
-// 添加点击具体公告的处理函数
+// 修改通知点击处理函数
 const handleNoticeClick = (notice: Notice) => {
-  if (notice.mess_file) {
+  if (notice.file?.path) {
+    const downloadedNotice = noticeStore.getDownloadedNotices.find(
+      item => item.notice.id === notice.id
+    )
+    
     router.push({
       path: '/pdfPreview',
       query: {
-        pdfSource: notice.mess_file
+        pdfSource: downloadedNotice?.downloadPath || notice.file.path
       }
     })
   } else {
@@ -186,6 +233,10 @@ const handleNoticeClick = (notice: Notice) => {
     })
   }
 }
+
+onMounted(() => {
+  loadNotices()
+})
 </script>
 
 <style scoped>

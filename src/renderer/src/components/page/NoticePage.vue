@@ -40,26 +40,29 @@
     <!-- 通知列表区域，添加 pb-16 为分页腾出空间 -->
     <div class="flex-1 overflow-y-auto space-y-4 pb-16">
       <div
-        v-for="(pdf, index) in paginatedNotices"
+        v-for="(notice, index) in paginatedNotices"
         :key="index"
         class="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] 
                hover:shadow-lg transition-shadow cursor-pointer"
-        @click="viewPdf(pdf)"
-        @keydown.enter="viewPdf(pdf)"
+        @click="viewPdf(notice)"
+        @keydown.enter="viewPdf(notice)"
         tabindex="0"
-        :aria-label="`查看${pdf.mess_title}的詳情`"
+        :aria-label="`查看${notice.title}的詳情`"
       >
         <div class="flex justify-between items-center">
           <div class="space-y-2">
-            <h3 class="text-xl font-semibold text-gray-900">{{ pdf.mess_title }}</h3>
+            <h3 class="text-xl font-semibold text-gray-900">{{ notice.title }}</h3>
             <div class="flex items-center gap-4">
               <span class="text-sm text-gray-500">
-                類型: {{ getNoticeTypeName(pdf.mess_type) }}
+                類型: {{ getNoticeTypeName(notice.type) }}
               </span>
-              <span v-if="pdf.created_at" class="text-sm text-gray-500">
-                發布時間: {{ formatDate(pdf.created_at) }}
+              <span v-if="notice.created_at" class="text-sm text-gray-500">
+                發布時間: {{ formatDate(notice.created_at) }}
               </span>
             </div>
+            <p v-if="notice.description" class="text-sm text-gray-600">
+              {{ notice.description }}
+            </p>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-blue-600 hover:text-blue-700">
@@ -116,15 +119,18 @@
 import { useRouter } from 'vue-router'
 import { useRouterStore } from '@renderer/stores/nav_store'
 import { routerState } from '@renderer/stores/nav_store'
-import { noticeStore } from '@renderer/stores/notice_store'
+import { useNoticeStore } from '@renderer/stores/notice_store'
 import { computed, ref } from 'vue'
 
 interface Notice {
   id: number
-  mess_title: string
-  mess_type: string
-  mess_file: string
+  title: string
+  type: string
+  file: {
+    path: string
+  }
   created_at?: string
+  description?: string
 }
 
 const props = defineProps<{
@@ -147,34 +153,30 @@ const navigation = [
 const getNoticeTypeName = (type: string): string => {
   const types: Record<string, string> = {
     common: '一般通告',
-    adv: '緊急通告',
+    urgent: '緊急通告',
     corporate: '法團通告',
-    government: '政府通告'
+    government: '政府通告',
+    system: '系統通告'
   }
   return types[type] || '其他'
 }
 
-const viewPdf = (pdf: any) => {
-  if (pdf.mess_type === 'common') {
-    const downloadedPdf = noticeStore().getNotices_hasDownload_common.find(
-      (item) => item.id === pdf.id
-    )
-    if (downloadedPdf?.path) {
-      router.push({ path: '/pdfPreview', query: { pdfSource: downloadedPdf.path } })
-    } else {
-      router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
-    }
-  } else if (pdf.mess_type === 'adv') {
-    const downloadedPdf = noticeStore().getNotices_hasDownload_adv.find(
-      (item) => item.id === pdf.id
-    )
-    if (downloadedPdf?.path) {
-      router.push({ path: '/pdfPreview', query: { pdfSource: downloadedPdf.path } })
-    } else {
-      router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
-    }
+const viewPdf = (notice: Notice) => {
+  const noticeStore = useNoticeStore()
+  const downloadedNotice = noticeStore.getDownloadedNotices.find(
+    item => item.notice.id === notice.id
+  )
+  
+  if (downloadedNotice?.downloadPath) {
+    router.push({ 
+      path: '/pdfPreview', 
+      query: { pdfSource: downloadedNotice.downloadPath } 
+    })
   } else {
-    router.push({ path: '/pdfPreview', query: { pdfSource: pdf.mess_file } })
+    router.push({ 
+      path: '/pdfPreview', 
+      query: { pdfSource: notice.file.path } 
+    })
   }
 }
 
@@ -222,7 +224,7 @@ const paginatedNotices = computed(() => {
   return sortedPdfSource.value.slice(start, end)
 })
 
-// 分页控制函数
+// 页控制函数
 const handlePreviousPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--

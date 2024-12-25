@@ -9,21 +9,27 @@
 
 <script setup lang="ts">
 import NoticePage from '@renderer/components/page/NoticePage.vue'
-import { noticeStore } from '@renderer/stores/notice_store'
+import { useNoticeStore } from '@renderer/stores/notice_store'
 import { onMounted, ref, watch } from 'vue'
 
 const pdfSources = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string; created_at?: string }[]>([])
 
+const noticeStore = useNoticeStore()
+
 const updateSources = () => {
   // 合并所有类型的通知
   const allNotices = [
-    ...noticeStore().getNotices_hasDownload_common,
-    ...noticeStore().getNotices_hasDownload_adv,
-    ...noticeStore().getNotices_common,
-    ...noticeStore().getNotices_adv
+    ...noticeStore.commonNotices,
+    ...noticeStore.urgentNotices,
+    ...noticeStore.governmentNotices,
+    ...noticeStore.systemNotices
   ].map(notice => ({
-    ...notice,
-    created_at: notice.created_at || new Date().toISOString() // 确保有创建时间
+    id: notice.id,
+    title: notice.title,
+    type: notice.type,
+    file: notice.file,
+    created_at: notice.created_at || new Date().toISOString(),
+    description: notice.description
   }))
 
   // 使用 Map 去重，以 id 为键，保留最新的记录
@@ -41,15 +47,15 @@ const updateSources = () => {
 // 监听 store 变化
 watch(
   [
-    () => noticeStore().getNotices_hasDownload_common,
-    () => noticeStore().getNotices_hasDownload_adv,
-    () => noticeStore().getNotices_common,
-    () => noticeStore().getNotices_adv
+    () => noticeStore.commonNotices,
+    () => noticeStore.urgentNotices,
+    () => noticeStore.governmentNotices,
+    () => noticeStore.systemNotices
   ],
   () => {
     updateSources()
   },
-  { immediate: true } // 确保首次加载时也执行
+  { immediate: true }
 )
 
 onMounted(() => {

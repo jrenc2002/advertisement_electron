@@ -73,7 +73,7 @@ const NoticeStore = useNoticeStore();
 
 // Login form data
 const loginData = ref<LoginRequest>({
-  ismartId: '0386100',
+  ismartId: '0386101',
   password: 'admin123'
 });
 

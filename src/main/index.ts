@@ -25,6 +25,13 @@ const getAppPath = () => {
   return is.dev ? process.cwd() : path.dirname(app.getAppPath());
 }
 
+// 在文件顶部添加这个函数来获取静态资源目录路径
+const getStaticPath = () => {
+  const appPath = getAppPath();
+  const staticPath = path.join(appPath, 'static');
+  return staticPath;
+}
+
 // 创建主窗口的函数
 function createWindow(): void {
   // 创建浏览器窗口实例
@@ -37,7 +44,7 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'), // 预加载脚本
       sandbox: false, // 禁用沙箱
-      webSecurity: false // 禁用 Web 安全性（不推荐在生产环境中使用）
+      webSecurity: false // 禁用 Web 全性（不推荐在生产环境中使用）
     }
   })
 
@@ -107,8 +114,12 @@ app.on('window-all-closed', () => {
 
 // 处理 PDF 下载请求
 ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
+  console.log(`[PDF下载] 开始下载PDF: ${filename}`)
+  console.log(`[PDF下载] 下载URL: ${url}`)
+  console.log(`[PDF下载] 保存类型: ${PathName}`)
+  
   try {
-    // 添加请求头
+    console.log('[PDF下载] 发起下载请求...')
     const response = await axios.get(url, { 
       responseType: 'arraybuffer',
       headers: {
@@ -116,30 +127,36 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
+    console.log('[PDF下载] 下载请求成功')
 
-    // 获取用户数据目录并创建保存路径
-    const userDataPath = app.getPath('userData');
-    const saveDir = path.join(userDataPath, 'downloads', 'pdf', PathName);
+    // 修改保存路径到static/notice文件夹
+    const staticPath = getStaticPath();
+    const saveDir = path.join(staticPath, 'notice', PathName);
+    console.log(`[PDF下载] 保存目录: ${saveDir}`)
 
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true });
+    console.log('[PDF下载] 目录创建成功')
 
     // 净化文件名并构建完整的文件路径
     const sanitizedFilename = sanitizeFilename(filename);
     const filePath = path.join(saveDir, sanitizedFilename);
+    console.log(`[PDF下载] 完整保存路径: ${filePath}`)
 
     // 检查文件是否已存在
     try {
       await fs.promises.access(filePath);
-      console.warn(`[download-pdf] 文件已存在: ${filePath}`);
+      console.log(`[PDF下载] 文件已存在: ${filePath}`);
       return { success: true, path: filePath };
     } catch {
       // 文件不存在，保存文件
+      console.log('[PDF下载] 开始写入文件...')
       await fs.promises.writeFile(filePath, response.data);
+      console.log('[PDF下载] 文件写入成功')
       return { success: true, path: filePath };
     }
   } catch (error: any) {
-    console.error(`下载 PDF "${filename}" 失败:`, error);
+    console.error(`[PDF下载] 下载失败 "${filename}":`, error);
     return { success: false, error: error.message };
   }
 });
@@ -147,40 +164,35 @@ ipcMain.handle('download-pdf', async (_event, { PathName, url, filename }) => {
 // 处理视频下载请求
 ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => {
   try {
-    // 下载视频文件
     const response = await axios.get(url, { responseType: 'arraybuffer' })
     const contentType = response.headers['content-type']
 
-    // 检查视频类型是否支持
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/avi', 'video/mkv']
     if (!allowedVideoTypes.includes(contentType)) {
       return { success: false, error: `不支持的视频类型: ${contentType}` }
     }
 
-    // 处理文件扩展名和路径
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
     
-    // 修改这里：使用应用程序目录
-    const appPath = getAppPath()
-    const saveDir = path.join(appPath, 'ad')
+    // 修改保存路径到static/ad文件夹
+    const staticPath = getStaticPath();
+    const saveDir = path.join(staticPath, 'ad');
 
-    // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
     const filePath = path.join(saveDir, validatedFilename)
 
-    // 检查文件是否已存在
     try {
       await fs.promises.access(filePath)
-      console.warn(`[download-video] 文件已存在: ${filePath}`)
+      console.log(`[视频下载] 文件已存在: ${filePath}`)
       return { success: true, path: filePath }
     } catch {
-      // 文件不存在，保存文件
       await fs.promises.writeFile(filePath, response.data)
+      console.log(`[视频下载] 文件保存成功: ${filePath}`)
       return { success: true, path: filePath }
     }
   } catch (error: any) {
-    console.error(`下载视频 "${filename}" 失败:`, error)
+    console.error(`[视频下载] 下载失败 "${filename}":`, error)
     return { success: false, error: error.message }
   }
 })
@@ -193,10 +205,13 @@ const sanitizeFilename = (filename: string): string => {
 // 处理图片下载请求
 ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => {
   try {
-    // 下载图片文件
-    const response = await axios.get(url, { responseType: 'stream', timeout: 10000 })
+    const response = await axios.get(url, { responseType: 'stream' })
     let contentType = response.headers['content-type']
 
+    // 修改保存路径到static/ad文件夹
+    const staticPath = getStaticPath();
+    const saveDir = path.join(staticPath, 'ad');
+    
     // 处理内容类型
     if (contentType.includes(';')) {
       contentType = contentType.split(';')[0].trim()
@@ -223,10 +238,6 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const sanitizedFilename = sanitizeFilename(filename)
     const validatedFilename = `${path.parse(sanitizedFilename).name}.${extension}`
     
-    // 修改这里：使用应用程序目录
-    const appPath = getAppPath()
-    const saveDir = path.join(appPath, 'ad')
-
     // 确保保存目录存在
     await fs.promises.mkdir(saveDir, { recursive: true })
     console.log(`[download-image] 确保目录存在: ${saveDir}`)

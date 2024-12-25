@@ -8,10 +8,11 @@
         v-if="currentAd.type === 'image' && isImageVisible"
         ref="imageElement"
         :src="currentAd.path ? currentAd.path : currentAd.file.path"
-        alt="Advertisement Image"
+        :alt="currentAd.title || 'Advertisement Image'"
         class="block rounded-lg max-h-full object-contain"
         :class="{ 'w-screen h-screen object-contain drop-shadow-lg': isFullscreen }"
         :width="isFullscreen ? '100%' : mediaWidth"
+        @error="nextAd"
       />
 
       <video
@@ -24,6 +25,7 @@
         muted
         autoplay
         loop
+        @error="nextAd"
         @ended="handleVideoEnd"
       ></video>
 
@@ -99,14 +101,35 @@ const adsHasDownloadMap = computed(() => {
   const map = new Map<number, any>()
   if (ads_hasDownload.value) {
     ads_hasDownload.value.forEach((ad) => {
+      const path = ad.downloadPath?.startsWith('file://') 
+        ? ad.downloadPath 
+        : `file://${ad.downloadPath}`
+      
       map.set(ad.advertisement.id, {
         ...ad.advertisement,
-        path: ad.downloadPath
+        path: path
       })
     })
   }
   return map
 })
+
+// 优化广告资源获取逻辑
+const getAdPath = (ad: CurrentAd | null): string => {
+  if (!ad) return ''
+  
+  // 如果是已下载的广告，优先使用下载路径
+  if (ad.path) {
+    return ad.path
+  }
+  
+  // 如果有 file 属性且包含 path
+  if (ad.file?.path) {
+    return ad.file.path
+  }
+  
+  return ''
+}
 
 /* video and image show loop */
 const startAdCycle = async () => {
@@ -115,24 +138,37 @@ const startAdCycle = async () => {
 
   if (!ads.value.length) return
 
-  const ad = ads.value[currentAdIndex.value]
-  const downloadedAd = adsHasDownloadMap.value?.get(ad.id)
-  currentAd.value = downloadedAd || ad
+  try {
+    const ad = ads.value[currentAdIndex.value]
+    const downloadedAd = adsHasDownloadMap.value?.get(ad.id)
+    currentAd.value = downloadedAd || ad
 
-  const playDuration = currentAd.value?.duration || 5
+    // 验证广告资源是否存在
+    const adPath = getAdPath(currentAd.value)
+    if (!adPath) {
+      console.warn('广告资源路径无效，跳转到下一个广告')
+      nextAd()
+      return
+    }
 
-  startCountdown(playDuration, nextAd)
+    const playDuration = currentAd.value?.duration || 5
 
-  const isVideo = currentAd.value?.type === 'video'
-  
-  if (isVideo) {
-    showVideo()
-    await playVideo()
-  } else {
-    showImage()
+    startCountdown(playDuration, nextAd)
+
+    const isVideo = currentAd.value?.type === 'video'
+    
+    if (isVideo) {
+      showVideo()
+      await playVideo()
+    } else {
+      showImage()
+    }
+
+    adTimer.value = window.setTimeout(nextAd, playDuration * 1000)
+  } catch (error) {
+    console.error('广告循环出错:', error)
+    nextAd()
   }
-
-  adTimer.value = window.setTimeout(nextAd, playDuration * 1000)
 }
 
 const showImage = () => {
@@ -151,7 +187,7 @@ const showVideo = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            // console.log('视频播��成功')
+            // console.log('视频播放成功')
           })
           .catch((err) => {
             // console.log('播放时间', videoElement.value!.currentTime)
@@ -199,9 +235,9 @@ watch(
       }
     }
     if (remainingTime.value > 0) {
-      //延時執行
+      //延时执行
       setTimeout(() => {
-        // console.log('广告列表变化，开始广告循��')
+        // console.log('广告列表变化，开始广告循环')
         startAdCycle()
       }, remainingTime.value * 1000)
     } else {

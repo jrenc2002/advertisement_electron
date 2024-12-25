@@ -164,29 +164,38 @@ export const downloadAndStorePDF = async (notice, PathName) => {
   const noticeStore = useNoticeStore();
   const notificationStore = useNotificationStore();
   
+  console.log(`[通知下载] 开始下载通知: ${notice.title}`)
+  console.log(`[通知下载] 通知ID: ${notice.id}`)
+  console.log(`[通知下载] 通知类型: ${PathName}`)
+  
   try {
     const pdfUrl = notice.file.path;
     const filename = `${notice.id}.pdf`;
     
+    console.log(`[通知下载] PDF URL: ${pdfUrl}`)
+    console.log(`[通知下载] 文件名: ${filename}`)
+    
     const result = await window.api.downloadPDF(PathName, pdfUrl, filename);
 
     if (result.success && result.path) {
+      console.log(`[通知下载] 下载成功，保存路径: ${result.path}`)
       noticeStore.addDownloadedNotice(notice, result.path);
+      console.log('[通知下载] 已更新通知存储状态')
     } else {
-      // 处理下载失败的情况
       const errorMessage = `下載PDF "${notice.title}" 失敗: ${result.error}`;
-      console.error(errorMessage);
+      console.error(`[通知下载] ${errorMessage}`);
       notificationStore.addNotification(errorMessage, 'error');
     }
   } catch (error: any) {
+    console.error(`[通知下载] 发生错误:`, error);
     // 特别处理403错误
     if (error.response?.status === 403) {
       const errorMessage = `下載PDF "${notice.title}" 失敗: 無訪問權限 (403 Forbidden)`;
-      console.error(errorMessage);
+      console.error(`[通知下载] ${errorMessage}`);
       notificationStore.addNotification(errorMessage, 'error');
     } else {
       const errorMessage = `下載PDF "${notice.title}" 失敗: ${error.message || '未知錯誤'}`;
-      console.error(errorMessage);
+      console.error(`[通知下载] ${errorMessage}`);
       notificationStore.addNotification(errorMessage, 'error');
     }
   }
@@ -194,11 +203,12 @@ export const downloadAndStorePDF = async (notice, PathName) => {
 
 /**
  * 下载所有PDF文件
- * 包括普通通知和广告通知的PDF
  */
 export const downloadAllPDFs = async () => {
   const noticeStore = useNoticeStore();
   const notificationStore = useNotificationStore();
+  
+  console.log('[批量下载] 开始批量下载PDF通知')
   
   // 获取所有通知
   const allNotices = [
@@ -208,26 +218,41 @@ export const downloadAllPDFs = async () => {
     ...noticeStore.urgentNotices
   ];
 
+  console.log(`[批量下载] 总通知数量: ${allNotices.length}`)
+  let downloadCount = 0;
   let errorCount = 0;
+  let skipCount = 0;
 
   // 下载所有通知的PDF
   for (const notice of allNotices) {
     try {
       // 检查是否已下载
       if (noticeStore.isNoticeDownloaded(notice.id)) {
+        console.log(`[批量下载] 跳过已下载通知: ${notice.title}`)
+        skipCount++;
         continue;
       }
       
       // 确保notice有file对象且有path
       if (notice.fileId && notice.file && notice.file.path) {
+        console.log(`[批量下载] 开始下载通知: ${notice.title}`)
         await downloadAndStorePDF(notice, notice.type);
+        downloadCount++;
+      } else {
+        console.log(`[批量下载] 通知缺少文件信息: ${notice.title}`)
+        skipCount++;
       }
     } catch (error: any) {
       errorCount++;
-      console.error(`下載通知 ${notice.title} 的PDF失敗:`, error);
+      console.error(`[批量下载] 下載通知 ${notice.title} 的PDF失敗:`, error);
       continue;
     }
   }
+
+  console.log(`[批量下载] 下载完成统计:`)
+  console.log(`- 成功下载: ${downloadCount}`)
+  console.log(`- 跳过数量: ${skipCount}`)
+  console.log(`- 失败数量: ${errorCount}`)
 
   // 如果有错误，显示汇总通知
   if (errorCount > 0) {
@@ -263,14 +288,29 @@ export const timeTask = async () => {
 
   try {
     // 1. 更新广告数据
-    adsStore.clearAds()
+    // adsStore.clearAds()
     const adsResponse = await api.getAdvertisements();
     adsStore.setAds(adsResponse.data);
     
     // 2. 下载新的广告资源
     await downloadAllAds();
     
-    notificationStore.addNotification('資源更新成功', 'success');
+  
+
+    noticeStore.clearNotices()
+    // 3. 更新通知数据
+    const noticesResponse = await api.getNotices();
+    noticeStore.setNotices(noticesResponse.data);
+    console.log('noticesResponse.data',noticesResponse.data)
+    console.log('noticeStore.getDownloadedNotices',noticeStore.getDownloadedNotices)
+
+    if (noticesResponse?.data) {
+      
+      // 4. 下载新的通知文件
+      await downloadAllPDFs();
+      
+      notificationStore.addNotification('更新成功', 'success');
+    }
   } catch (error) {
     console.error('資源更新失敗:', error);
     notificationStore.addNotification('資源更新失敗，請檢查網絡連接', 'error');
