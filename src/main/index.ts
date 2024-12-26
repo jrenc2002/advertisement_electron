@@ -175,9 +175,9 @@ ipcMain.handle('download-video', async (_event, { PathName, url, filename }) => 
     const extension = contentType.split('/').pop()
     const validatedFilename = `${path.parse(filename).name}.${extension}`
     
-    // 修改保存路径到static/ad文件夹
+    // 修改保存路径，使用传入的 PathName
     const staticPath = getStaticPath();
-    const saveDir = path.join(staticPath, 'ad');
+    const saveDir = path.join(staticPath, PathName);
 
     await fs.promises.mkdir(saveDir, { recursive: true })
     const filePath = path.join(saveDir, validatedFilename)
@@ -208,9 +208,9 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
     const response = await axios.get(url, { responseType: 'stream' })
     let contentType = response.headers['content-type']
 
-    // 修改保存路径到static/ad文件夹
+    // 修改保存路径，使用传入的 PathName
     const staticPath = getStaticPath();
-    const saveDir = path.join(staticPath, 'ad');
+    const saveDir = path.join(staticPath, PathName);
     
     // 处理内容类型
     if (contentType.includes(';')) {
@@ -250,7 +250,7 @@ ipcMain.handle('download-image', async (_event, { PathName, url, filename }) => 
       console.warn(`[download-image] 文件已存在: ${filePath}`)
       return { success: true, path: filePath }
     } catch {
-      // 文件不存在，使用流式下载保存文件
+      // 文件不存在，使用流式下载保存��件
       await pipeline(response.data, fs.createWriteStream(filePath))
       console.log(`图片 ${validatedFilename} 下载成功，路径: ${filePath}`)
       return { success: true, path: filePath }

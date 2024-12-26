@@ -34,13 +34,7 @@
       </div>
     </div>
     <div v-else>
-      <img
-        src="../../assets/img/fetch.png"
-        alt="default advertisement"
-        class="block rounded-lg max-h-full object-contain"
-        :class="{ 'w-screen h-screen object-contain drop-shadow-lg': isFullscreen }"
-        :width="isFullscreen ? '100%' : mediaWidth"
-      />
+        出错了呜呜呜
     </div>
   </div>
 </template>
@@ -53,20 +47,17 @@ import {
   watch,
 } from 'vue';
 
-import { useActivityMonitor } from '@renderer/composables/useActivityMonitor';
 import { useAdsStore } from '@renderer/stores/ads_store';
-import { useTaskStore } from '@renderer/stores/task_store';
 import type { Advertisement } from '@renderer/apis';
 import { useAdCycle } from '@renderer/composables/useAdCycle';
 import { useVideoPlayer } from '@renderer/composables/useVideoPlayer';
+import { useScreenController } from '@renderer/composables/useScreenController'
 
-const taskStore = useTaskStore()
 // isImageVisible isVideoVisible
 const isImageVisible = ref(true)
 const isVideoVisible = ref(false)
 const { 
   adTimer,
-  countdownTimer,
   remainingTime,
   clearAdTimer,
   clearCountdownTimer,
@@ -281,7 +272,18 @@ onBeforeUnmount(() => {
   stopVideo()
 })
 
-// 添加活动监控
-const { isFullscreen } = useActivityMonitor(300000, undefined, 10000)
+// 使用更新后的 screenController
+const screenController = useScreenController({
+  idleTimeout: 10000,
+  displayDuration: 30000,
+  noticeDuration: 10000,
+  fullscreenTimeout: 10000
+})
+
+// 计算是否应该全屏显示
+const isFullscreen = computed(() => 
+  screenController.currentState.value === 'fullscreen-ad' || 
+  screenController.isFullscreen.value
+)
 
 </script>

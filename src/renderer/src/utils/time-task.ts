@@ -7,12 +7,11 @@
  * 4. 定时任务执行函数
  */
 
-import axios from 'axios';
 import  api  from '@renderer/apis';
 import { useAdsStore } from '@renderer/stores/ads_store';
 import { useNoticeStore } from '@renderer/stores/notice_store';
-import { useBuildingStore } from '@renderer/stores/building_store';
 import { useNotificationStore } from '@renderer/stores/noticefication_store';
+import { useArrearageStore } from '@renderer/stores/arrearage_store';
 
 
 /**
@@ -210,7 +209,7 @@ export const downloadAllPDFs = async () => {
   
   console.log('[批量下载] 开始批量下载PDF通知')
   
-  // 获取所有通知
+  // 取所有通知
   const allNotices = [
     ...noticeStore.commonNotices,
     ...noticeStore.governmentNotices,
@@ -265,19 +264,61 @@ export const downloadAllPDFs = async () => {
 }
 
 /**
- * 定时任务主函数
- * 执行以下操作:
- * 1. 验证登录状态
- * 2. 更新广告数据
- * 3. 下载新的广告资源
- * 4. 更新通知数据
- * 5. 下载新的通知文件
+ * 处理欠费数据更新
  */
-export const timeTask = async () => {
-  const adsStore = useAdsStore();
+const handleArrearageUpdate = async () => {
+  const arrearageStore = useArrearageStore();
+  const buildingId = localStorage.getItem('ismartId'); // 从localStorage获取当前大厦ID
+  
+  if (!buildingId) {
+    throw new Error('Building ID not found');
+  }
+
+  const response = await api.getArrearage(buildingId);
+  arrearageStore.setArrearage(response.data);
+  return response;
+};
+
+/**
+ * 处理PDF数据更新和下载
+ */
+const handlePDFUpdate = async () => {
   const noticeStore = useNoticeStore();
+  
+  // 1. 更新通知数据
+  const noticesResponse = await api.getNotices();
+  noticeStore.setNotices(noticesResponse.data);
+
+  // 2. 下载新的通知文件
+  await downloadAllPDFs();
+  
+  return noticesResponse;
+};
+
+/**
+ * 处理广告数据更新和下载
+ */
+const handleAdsUpdate = async () => {
+  const adsStore = useAdsStore();
+  
+  // 1. 更新广告数据
+  const adsResponse = await api.getAdvertisements();
+  adsStore.setAds(adsResponse.data);
+  
+  // 2. 下载新的广告资源
+  await downloadAllAds();
+  
+  return adsResponse;
+};
+
+/**
+ * 定时任务主函数
+ * @param type - 任务类型：'arrearage' | 'pdf' | 'ads'
+ */
+export const timeTask = async (type: 'arrearage' | 'pdf' | 'ads') => {
   const notificationStore = useNotificationStore();
 
+  // 验证登录状态
   const user_name = localStorage.getItem('ismartId');
   const password = localStorage.getItem('password');
 
@@ -287,33 +328,27 @@ export const timeTask = async () => {
   }
 
   try {
-    // 1. 更新广告数据
-    // adsStore.clearAds()
-    const adsResponse = await api.getAdvertisements();
-    adsStore.setAds(adsResponse.data);
+    let response;
     
-    // 2. 下载新的广告资源
-    await downloadAllAds();
-    
-  
+    // 根据类型执行相应的更新任务
+    switch (type) {
+      case 'arrearage':
+        response = await handleArrearageUpdate();
+        break;
+      case 'pdf':
+        response = await handlePDFUpdate();
+        break;
+      case 'ads':
+        response = await handleAdsUpdate();
+        break;
+    }
 
-    noticeStore.clearNotices()
-    // 3. 更新通知数据
-    const noticesResponse = await api.getNotices();
-    noticeStore.setNotices(noticesResponse.data);
-    console.log('noticesResponse.data',noticesResponse.data)
-    console.log('noticeStore.getDownloadedNotices',noticeStore.getDownloadedNotices)
-
-    if (noticesResponse?.data) {
-      
-      // 4. 下载新的通知文件
-      await downloadAllPDFs();
-      
-      notificationStore.addNotification('更新成功', 'success');
+    if (response?.data) {
+      notificationStore.addNotification(`${type}更新成功`, 'success');
     }
   } catch (error) {
-    console.error('資源更新失敗:', error);
-    notificationStore.addNotification('資源更新失敗，請檢查網絡連接', 'error');
+    console.error(`${type}資源更新失敗:`, error);
+    notificationStore.addNotification(`${type}資源更新失敗，請檢查網絡連接`, 'error');
     throw error;
   }
 };

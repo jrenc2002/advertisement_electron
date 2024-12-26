@@ -237,9 +237,5 @@ const handleNextPage = () => {
   }
 }
 
-// 添加计算占位符数量的计算属性
-const getPlaceholderCount = computed(() => {
-  const currentPageItems = paginatedNotices.value.length
-  return currentPageItems < itemsPerPage ? itemsPerPage - currentPageItems : 0
-})
+
 </script>

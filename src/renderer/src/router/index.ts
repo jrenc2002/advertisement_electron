@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import HomeLayout from '../layouts/HomeLayout.vue'
 import PDFViewLayout from '../layouts/PDFViewLayout.vue'
 import ArrearageFind from '../views/arrearage/ArrearageFind.vue'
-
+import ArrearageTable from '../components/table/ArrangeTable.vue'
 // 定义路由的类型
 const routes: Array<RouteRecordRaw> = [
   {
@@ -20,13 +20,11 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'allNotice', component: () => import('../views/notice/AllNotice.vue') },
       { path: 'setting', component: () => import('../views/setting/SettingBindBuilding.vue') },
       { path: 'buildingDetail', component: () => import('../views/setting/BuildingDetail.vue') },
-      { path: '/arrearage-find', name: 'ArrearageFind', component: ArrearageFind }
+      { path: '/arrearage-find', name: 'ArrearageFind', component: ArrearageFind },
+      { path: '/arrearage-table', name: 'ArrearageTable', component: ArrearageTable },
+      { path: '/pdfPreview', name: 'PdfPreview', component: () => import('../views/PDF/PdfPreview.vue') }
+    
     ]
-  },
-  {
-    path: '/pdfPreview',
-    component: PDFViewLayout,
-    children: [{ path: '', component: () => import('../views/pdf/PdfPreview.vue') }]
   }
 ]
 

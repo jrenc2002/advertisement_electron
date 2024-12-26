@@ -64,12 +64,13 @@ import { useAdsStore } from '@renderer/stores/ads_store';
 import { useBuildingStore } from '@renderer/stores/building_store';
 import { useNoticeStore } from '@renderer/stores/notice_store';
 import { useNotificationStore } from '@renderer/stores/noticefication_store';
-
+import { useArrearageStore } from '@renderer/stores/arrearage_store';
 const router = useRouter();
 const notificationStore = useNotificationStore();
 const BuildingStore = useBuildingStore();
 const AdsStore = useAdsStore();
 const NoticeStore = useNoticeStore();
+const ArrearageStore = useArrearageStore();
 
 // Login form data
 const loginData = ref<LoginRequest>({
@@ -101,6 +102,11 @@ const handleLogin = async () => {
     const noticesResponse = await api.getNotices(token);
     console.log(noticesResponse.data)
     NoticeStore.setNotices(noticesResponse.data);
+
+    // 获取欠费信息
+    const arrearageResponse = await api.getArrearage(token);
+    console.log(arrearageResponse.data)
+    ArrearageStore.setArrearage(arrearageResponse.data);
     
     // 显示成功提示
     notificationStore.addNotification('绑定成功', 'success');

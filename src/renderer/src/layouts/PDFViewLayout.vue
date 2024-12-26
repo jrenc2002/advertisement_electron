@@ -13,14 +13,31 @@
 </template>
 
 <script setup>
-import AdvertisementTop from '@renderer/components/ADtop/AdvertisementTop.vue'
+import AdvertisementTop from '@renderer/components/ADTop/AdvertisementTop.vue'
 import WeatherFooter from '@renderer/components/footer/WeatherFooter.vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-const handleReturn = () => {
-  router.push('/PdfPreview')
-  // console.log(router.currentRoute.value.path)
-}
+import { onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
+// 监听路由参数变化
+watch(
+  () => route.query,
+  async (newQuery) => {
+    if (newQuery.pdfSource) {
+      // 重新加载 PDF
+      await loadPDF(newQuery.pdfSource)
+    }
+  },
+  { deep: true }
+)
+
+// 组件卸载时清理
+onBeforeUnmount(() => {
+  // 清理 PDF 相关资源
+  // ...
+})
+
 </script>
 <style scoped lang="scss">
 .home-layout {

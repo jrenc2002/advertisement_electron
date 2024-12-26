@@ -109,18 +109,24 @@
           <h2 class="text-xl font-bold text-gray-800">系統設置</h2>
         </div>
         <div class="space-y-4">
-          <div class="flex items-center gap-3">
-            <label class="text-sm text-gray-600">更新間隔</label>
+          <!-- 更新间隔设置 -->
+          <div v-for="config in intervalConfigs" :key="config.type" class="flex items-center gap-3">
+            <div class="flex items-center gap-2 w-32">
+              <span class="material-icons-outlined text-gray-600 text-sm">{{ config.icon }}</span>
+              <label class="text-sm text-gray-600">{{ config.label }}</label>
+            </div>
             <input
-              v-model.number="updateInterval"
+              v-model.number="intervals[config.type]"
               type="number"
-              min="1"
+              :min="config.min"
               class="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              @blur="handleIntervalChange"
-              @keyup.enter="handleIntervalChange"
+              @blur="handleIntervalChange(config.type)"
+              @keyup.enter="handleIntervalChange(config.type)"
             />
             <span class="text-sm text-gray-600">分鐘</span>
           </div>
+
+          <!-- 解除绑定按钮 -->
           <button 
             @click="handleUnbind"
             class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
@@ -157,7 +163,7 @@ const taskStore = useTaskStore();
 // Tab 配置
 const tabs = [
   { key: 'ads', label: '廣告資訊', icon: 'ads_click' },
-  { key: 'notices', label: '通知資訊', icon: 'notifications' }
+  { key: 'notices', label: '通���資訊', icon: 'notifications' }
 ] as const;
 const currentTab = ref<typeof tabs[number]['key']>('ads');
 
@@ -166,8 +172,26 @@ const building = computed(() => buildingStore.getBuilding);
 const advertisements = computed(() => adsStore.getAllAds);
 const notices = computed(() => noticeStore.notices);
 
+// 更新间隔配置
+interface IntervalConfig {
+  type: 'arrearage' | 'pdf' | 'ads';
+  label: string;
+  icon: string;
+  min: number;
+}
+
+const intervalConfigs: IntervalConfig[] = [
+  { type: 'arrearage', label: '欠費更新間隔', icon: 'payments', min: 5 },
+  { type: 'pdf', label: 'PDF更新間隔', icon: 'description', min: 10 },
+  { type: 'ads', label: '廣告更新間隔', icon: 'ads_click', min: 15 }
+];
+
 // 更新间隔
-const updateInterval = ref<number>(1);
+const intervals = ref({
+  arrearage: 5,
+  pdf: 10,
+  ads: 15
+});
 
 // 显示类型映射
 const displayTypeMap: Record<Advertisement['display'], string> = {
@@ -196,13 +220,19 @@ const getNoticeTypeStyle = (type: Notice['type']) => {
 };
 
 // 处理更新间隔变更
-const handleIntervalChange = () => {
-  if (updateInterval.value < 1) {
-    updateInterval.value = 1;
+const handleIntervalChange = (type: 'arrearage' | 'pdf' | 'ads') => {
+  const config = intervalConfigs.find(c => c.type === type);
+  if (!config) return;
+
+  // 确保不小于最小值
+  if (intervals.value[type] < config.min) {
+    intervals.value[type] = config.min;
   }
-  taskStore.setUpdateInterval(updateInterval.value);
-  taskStore.startScheduledTask();
-  notificationStore.addNotification('更新間隔設置成功', 'success');
+
+  // 更新间隔
+  taskStore.setInterval(type, intervals.value[type]);
+  taskStore.startTask(type);
+  notificationStore.addNotification(`${config.label}設置成功`, 'success');
 };
 
 // 处理解绑
@@ -210,14 +240,20 @@ const handleUnbind = async () => {
   adsStore.clearAds();
   buildingStore.clearBuilding();
   noticeStore.clearNotices();
-  taskStore.stopScheduledTask();
+  taskStore.stopAllTasks();
   localStorage.removeItem('ismartId');
   localStorage.removeItem('password');
   notificationStore.addNotification('解除綁定成功', 'success');
   router.push('/setting');
 };
 
+// 初始化
 onBeforeMount(() => {
-  updateInterval.value = taskStore.updateInterval;
+  // 获取各个任务的更新间隔
+  intervals.value = {
+    arrearage: taskStore.arrearageInterval,
+    pdf: taskStore.pdfInterval,
+    ads: taskStore.adsInterval
+  };
 });
 </script>

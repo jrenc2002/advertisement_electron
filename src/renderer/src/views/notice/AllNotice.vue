@@ -8,12 +8,11 @@
 </template>
 
 <script setup lang="ts">
-import NoticePage from '@renderer/components/page/NoticePage.vue'
+import NoticePage from '@renderer/components/Page/NoticePage.vue'
 import { useNoticeStore } from '@renderer/stores/notice_store'
 import { onMounted, ref, watch } from 'vue'
 
-const pdfSources = ref<{ id: number; mess_title: string; mess_type: string; mess_file: string; created_at?: string }[]>([])
-
+const pdfSources = ref<any[]>([])
 const noticeStore = useNoticeStore()
 
 const updateSources = () => {
@@ -28,7 +27,7 @@ const updateSources = () => {
     title: notice.title,
     type: notice.type,
     file: notice.file,
-    created_at: notice.created_at || new Date().toISOString(),
+    created_at: notice.createdAt || new Date().toISOString(),
     description: notice.description
   }))
 

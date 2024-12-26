@@ -8,6 +8,11 @@ interface LoginRequest {
   password: string
 }
 
+interface ArrearageRecord {
+  單位: string;  // 单位名称
+  [key: string]: string | number;  // 动态的时间-欠款键值对
+}
+
 interface LoginResponse {
   data: {
     id: number
@@ -66,8 +71,9 @@ interface Notice {
 }
 
 interface ApiResponse<T> {
-  data: T
-  message: string
+  data: T;
+  message?: string;
+  status?: number;
 }
 
 // API 实现
@@ -124,6 +130,30 @@ const api = {
       }
     )
     return response.data
+  },
+
+  getArrearage: async (buildingId: string): Promise<ApiResponse<ArrearageRecord[]>> => {
+    const response = await fetch(
+      'https://uqf0jqfm77.execute-api.ap-east-1.amazonaws.com/prod/v1/building_board/building-mf-table',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          blg_id: buildingId,
+          ptype: 'mf'
+        })
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch arrearage data');
+    }
+    
+    const data = await response.json();
+    console.log(data,response.status,response)
+    return { data, status: response.status };
   }
 }
 
