@@ -1,6 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import HomeLayout from '../layouts/HomeLayout.vue'
-import PDFViewLayout from '../layouts/PDFViewLayout.vue'
 import ArrearageFind from '../views/arrearage/ArrearageFind.vue'
 import ArrearageTable from '../components/table/ArrangeTable.vue'
 // 定义路由的类型

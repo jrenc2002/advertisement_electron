@@ -198,31 +198,30 @@ export const useFlowStore = defineStore('flow', () => {
     console.log('[Flow] 开始屏幕序列')
     clearTimer('state')
     
-    // 开始新的轮播循环
-    const startNewCycle = () => {
-      console.log('[Flow] 开始新的轮播循环')
-      transitionTo('fullscreen-ad')
-
-      console.log('[Flow] 设置广告->欠费表计时器:', timeoutConfig.display, 'ms')
-      timers.state = setTimeout(() => {
-        if (!isUserActive.value) {
-          console.log('[Flow] 切换到欠费表')
-          transitionTo('arrearage-table')
-
-          console.log('[Flow] 设置欠费表->通知计时器:', timeoutConfig.display, 'ms')
-          timers.state = setTimeout(() => {
-            if (!isUserActive.value) {
-              console.log('[Flow] 切换到通知轮播')
-              transitionTo('notice')
-              // 通知轮播完成后会自动切换回广告，开始新的循环
-            }
-          }, timeoutConfig.display)
-        }
-      }, timeoutConfig.display)
-    }
-
-    // 启动第一次循环
+    // 将startNewCycle提取为独立函数
     startNewCycle()
+  }
+
+  // 新增：将循环逻辑提取为独立函数
+  const startNewCycle = () => {
+    console.log('[Flow] 开始新的轮播循环')
+    transitionTo('fullscreen-ad')
+
+    console.log('[Flow] 设置广告->欠费表计时器:', timeoutConfig.display, 'ms')
+    timers.state = setTimeout(() => {
+      if (!isUserActive.value) {
+        console.log('[Flow] 切换到欠费表')
+        transitionTo('arrearage-table')
+
+        console.log('[Flow] 设置欠费表->通知计时器:', timeoutConfig.display, 'ms')
+        timers.state = setTimeout(() => {
+          if (!isUserActive.value) {
+            console.log('[Flow] 切换到通知轮播')
+            transitionTo('notice')
+          }
+        }, timeoutConfig.display)
+      }
+    }, timeoutConfig.display)
   }
 
   // === 通知轮播控制 ===
@@ -270,8 +269,7 @@ export const useFlowStore = defineStore('flow', () => {
           handleError({
             message: '通知文件路径无效',
             retry: () => {
-              currentNoticeIndex.value = 
-                (currentNoticeIndex.value + 1) 
+              currentNoticeIndex.value = (currentNoticeIndex.value + 1) % activeNotices.value.length
               rotateNotice()
             }
           })
@@ -300,17 +298,22 @@ export const useFlowStore = defineStore('flow', () => {
         clearTimer('state')
         timers.state = setTimeout(() => {
           if (currentNoticePage.value < totalNoticePages.value) {
+            // 还有下一页，继续显示当前PDF的下一页
             currentNoticePage.value++
             rotateNotice()
           } else {
+            // 当前PDF已经显示完所有页面，切换到下一个通知
             currentNoticePage.value = 1
             currentNoticeIndex.value++
             
             if (currentNoticeIndex.value >= activeNotices.value.length) {
+              // 所有通知都显示完毕，重新开始新的循环
               currentNoticeIndex.value = 0
               isNoticeRotating.value = false
-              transitionTo('fullscreen-ad')
+              clearAllTimers() // 清除所有现有计时器
+              startNewCycle() // 开始新的循环
             } else {
+              // 显示下一个通知
               rotateNotice()
             }
           }

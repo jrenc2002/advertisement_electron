@@ -2,6 +2,7 @@
 <template>
   <div class="w-full h-full">
     <PDF
+      ref="pdfRef"
       :src="pdfUrl"
       :page="currentPage"
       :pdf-width="'100%'"
@@ -14,9 +15,8 @@
       :use-system-fonts="false"
       :disable-stream="true"
       :disable-auto-fetch="true"
-      @on-page-change="handlePageChange"
-      @document-load="handleDocumentLoad"
       class="pdf-container"
+      @on-page-change="handlePageChange"
     />
   </div>
 </template>
@@ -24,7 +24,6 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, watch } from 'vue'
 import PDF from 'pdf-vue3'
-import { useFlowStore } from '@renderer/stores/flow_store'
 
 const props = defineProps<{
   pdfUrl: string
@@ -33,28 +32,22 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'page-change', page: number): void
-  (e: 'total-pages', total: number): void
 }>()
-
-const flowStore = useFlowStore()
 
 const handlePageChange = (page: number) => {
   emit('page-change', page)
 }
 
-// 处理文档加载完成事件
-const handleDocumentLoad = (pdf: any) => {
-  const totalPages = pdf.numPages
-  flowStore.totalNoticePages = totalPages
-  emit('total-pages', totalPages)
-  console.log('[PDFViewer] PDF加载完成，总页数:', totalPages)
-}
-
-// 监听页码变化
+// 监听currentPage的变化
 watch(() => props.currentPage, (newPage) => {
-  console.log('[PDFViewer] 页码变化:', newPage)
-  flowStore.currentNoticePage = newPage
-})
+  if (newPage) {
+    // 强制更新PDF组件的页码
+    const pdfElement = document.querySelector('.pdf-vue3') as any
+    if (pdfElement && pdfElement.__vue__) {
+      pdfElement.__vue__.currentPage = newPage
+    }
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
