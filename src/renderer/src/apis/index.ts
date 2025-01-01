@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = '/api'
+const BASE_URL = 'http://121.40.160.35:10032'
 
 // 类型定义
 interface LoginRequest {

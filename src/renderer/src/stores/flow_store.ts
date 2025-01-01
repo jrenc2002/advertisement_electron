@@ -17,6 +17,7 @@ interface TimerConfig {
   display: number   // 显示持续时间
   notice: number    // 通知显示时间
   fullscreen: number // 全屏模式超时时间
+  pdfPage: number   // PDF 每页停留时间，新增
 }
 
 // 定义错误处理接口
@@ -44,7 +45,8 @@ export const useFlowStore = defineStore('flow', () => {
     idle: 10000,        // 10秒空闲
     display: 30000,     // 30秒显示
     notice: 10000,      // 10秒通知
-    fullscreen: 10000   // 10秒全屏
+    fullscreen: 10000,  // 10秒全屏
+    pdfPage: 5000      // 每页停留5秒，可以根据需要调整
   }
 
   // === 计时器存储对象 ===
@@ -55,18 +57,18 @@ export const useFlowStore = defineStore('flow', () => {
   }
 
   // === 媒体播放状态管理 ===
-  const mediaState = {
-    currentAdIndex: ref(0),           // 当前广告索引
-    adRemainingTime: ref(0),          // 广告剩余时间
-    isAdPlaying: ref(false),          // 是否正在播放广告
-    currentNoticeIndex: ref(0),       // 当前通知索引
-    isNoticeRotating: ref(false)      // 是否正在轮播通知
-  }
+  const currentAdIndex = ref(0)           // 当前广告索引
+  const adRemainingTime = ref(0)          // 广告剩余时间
+  const isAdPlaying = ref(false)          // 是否正在播放广告
+  const currentNoticeIndex = ref(0)       // 当前通知索引
+  const currentNoticePage = ref(1)        // 当前页码
+  const totalNoticePages = ref(1)         // 总页数
+  const isNoticeRotating = ref(false)     // 是否正在轮播通知
 
   // === 计算属性 ===
   // 获取活跃的广告列表
   const activeAds = computed(() => adsStore.getActiveAds)
-  // 获取已下载的广告��
+  // 获取已下载的广告
   const downloadedAds = computed(() => adsStore.getDownloadedAds)
   // 获取所有可显示的通知（已下载且有效的）
   const activeNotices = computed(() => {
@@ -134,13 +136,13 @@ export const useFlowStore = defineStore('flow', () => {
           break
         case 'notice':
           console.log('[Flow] 开始通知轮播')
-          mediaState.currentNoticeIndex.value = 0 // 重置通知索引
+          currentNoticeIndex.value = 0 // 重置通知索引
           startNoticeRotation()
           break
         case 'fullscreen-ad':
           console.log('[Flow] 进入全屏广告模式')
-          mediaState.isAdPlaying.value = true
-          mediaState.currentAdIndex.value = 0 // 重置广告索引
+          isAdPlaying.value = true
+          currentAdIndex.value = 0 // 重置广告索引
           // 移除 router.push('/fullscreen-ad')，改为触发广告播放状态
           break
       }
@@ -185,7 +187,7 @@ export const useFlowStore = defineStore('flow', () => {
     console.log('[Flow] 启动空闲计时器:', timeoutConfig.idle, 'ms')
     clearTimer('idle')
     timers.idle = setTimeout(() => {
-      console.log('[Flow] 空闲超时，用户变为非��跃')
+      console.log('[Flow] 空闲超时，用户变为非活跃')
       isUserActive.value = false
       startScreenSequence()
     }, timeoutConfig.idle)
@@ -235,108 +237,84 @@ export const useFlowStore = defineStore('flow', () => {
     }
 
     // 确保索引在有效范围内
-    if (mediaState.currentNoticeIndex.value >= activeNotices.value.length) {
+    if (currentNoticeIndex.value >= activeNotices.value.length) {
       console.log('[Flow] 重置通知索引')
-      mediaState.currentNoticeIndex.value = 0
+      currentNoticeIndex.value = 0
     }
 
     console.log('[Flow] 开始通知轮播，共', activeNotices.value.length, '条通知')
-    mediaState.isNoticeRotating.value = true
+    isNoticeRotating.value = true
     rotateNotice()
   }
 
   // 轮播单个通知
   const rotateNotice = async () => {
     console.log('[Flow] 开始轮播通知, 用户状态:', isUserActive.value)
-    console.log('[Flow] 当前通知列表:', activeNotices.value)
     
     if (!isUserActive.value && activeNotices.value && activeNotices.value.length > 0) {
       try {
-        // 检查是否完成了一轮循环
-        if (mediaState.currentNoticeIndex.value >= activeNotices.value.length) {
-          console.log('[Flow] 完成一轮通知轮播，切换到广告')
-          mediaState.currentNoticeIndex.value = 0;
-          mediaState.isNoticeRotating.value = false;
-          // 切换到广告状态，开始新的循环
-          transitionTo('fullscreen-ad');
-          return;
-        }
-
-        const notice = activeNotices.value[mediaState.currentNoticeIndex.value]
+        const notice = activeNotices.value[currentNoticeIndex.value]
         if (!notice) {
           console.error('[Flow] 无法获取当前通知')
-          return;
+          return
         }
-
-        console.log('[Flow] 当前通知详情:', {
-          index: mediaState.currentNoticeIndex.value,
-          notice: notice,
-          totalNotices: activeNotices.value.length
-        })
 
         const downloadedNotice = noticeStore.getDownloadedNotices.find(
           item => item.notice.id === notice.id
         )
         
-        console.log('[Flow] 下载的通知信息:', downloadedNotice)
-        
         const pdfPath = downloadedNotice?.downloadPath || notice.file?.path
-        console.log('[Flow] PDF路径:', pdfPath)
         
         if (!pdfPath) {
-          console.error('[Flow] 通知文件路径无效:', {
-            notice,
-            downloadedNotice
-          })
+          console.error('[Flow] 通知文件路径无效')
           handleError({
             message: '通知文件路径无效',
             retry: () => {
-              console.log('[Flow] 尝试显示下一个通知')
-              mediaState.currentNoticeIndex.value = 
-                (mediaState.currentNoticeIndex.value + 1) 
+              currentNoticeIndex.value = 
+                (currentNoticeIndex.value + 1) 
               rotateNotice()
             }
           })
           return
         }
 
-        // 先导航到一个空白页面或临时页面
-        await router.push('/')
-        
-        // 等待组件卸载完成
-        await nextTick()
-        
-        console.log('[Flow] 准备导航到PDF预览:', {
-          path: '/pdfPreview',
-          query: {
-            pdfSource: pdfPath,
-            title: notice.title,
-            noticeId: notice.id,
-            // 添加一个时间戳参数，强制组件重新渲染
-            _t: Date.now()
-          }
-        })
+        // 如果是新的通知，重置页码
+        if (currentNoticePage.value === 1) {
+          await router.push('/')
+          await nextTick()
+        }
 
-        // 使用 replace 而不是 push，这样不会在历史记录中留下多余的记录
         await router.replace({ 
           path: '/pdfPreview',
           query: { 
             pdfSource: pdfPath,
             title: notice.title,
             noticeId: notice.id,
-            _t: Date.now()  // 添加时间戳确保路由参数变化
+            currentPage: currentNoticePage.value.toString(),
+            _t: Date.now()
           }
         })
         
-        // 等待新组件挂载完成
         await nextTick()
         
-        mediaState.currentNoticeIndex.value = 
-          (mediaState.currentNoticeIndex.value + 1) 
-        
-        // 设置下一个通知的定时器
         clearTimer('state')
-        timers.state = setTimeout(rotateNotice, timeoutConfig.notice)
+        timers.state = setTimeout(() => {
+          if (currentNoticePage.value < totalNoticePages.value) {
+            currentNoticePage.value++
+            rotateNotice()
+          } else {
+            currentNoticePage.value = 1
+            currentNoticeIndex.value++
+            
+            if (currentNoticeIndex.value >= activeNotices.value.length) {
+              currentNoticeIndex.value = 0
+              isNoticeRotating.value = false
+              transitionTo('fullscreen-ad')
+            } else {
+              rotateNotice()
+            }
+          }
+        }, timeoutConfig.pdfPage)
 
       } catch (error) {
         console.error('[Flow] 通知轮播失败:', error)
@@ -345,17 +323,12 @@ export const useFlowStore = defineStore('flow', () => {
           retry: rotateNotice
         })
       }
-    } else {
-      console.log('[Flow] 跳过通知轮播:', {
-        isUserActive: isUserActive.value,
-        hasNotices: Boolean(activeNotices.value?.length)
-      })
     }
   }
 
   // 停止通知轮播
   const stopNoticeRotation = () => {
-    mediaState.isNoticeRotating.value = false
+    isNoticeRotating.value = false
     clearTimer('state')
   }
 
@@ -363,7 +336,7 @@ export const useFlowStore = defineStore('flow', () => {
   const cleanup = () => {
     clearAllTimers()
     stopNoticeRotation()
-    mediaState.isAdPlaying.value = false
+    isAdPlaying.value = false
     isError.value = false
   }
 
@@ -375,7 +348,15 @@ export const useFlowStore = defineStore('flow', () => {
     isFullscreen,
     isError,
     errorMessage,
-    ...mediaState,
+    
+    // 媒体状态
+    currentAdIndex,
+    adRemainingTime,
+    isAdPlaying,
+    currentNoticeIndex,
+    currentNoticePage,
+    totalNoticePages,
+    isNoticeRotating,
     
     // 计算属性
     activeAds,

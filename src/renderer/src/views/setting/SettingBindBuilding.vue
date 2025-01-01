@@ -103,10 +103,10 @@ const handleLogin = async () => {
     console.log(noticesResponse.data)
     NoticeStore.setNotices(noticesResponse.data);
 
-    // 获取欠费信息
-    const arrearageResponse = await api.getArrearage(token);
-    console.log(arrearageResponse.data)
-    ArrearageStore.setArrearage(arrearageResponse.data);
+    // // 获取欠费信息
+    // const arrearageResponse = await api.getArrearage(token);
+    // console.log(arrearageResponse.data)
+    // ArrearageStore.setArrearage(arrearageResponse.data);
     
     // 显示成功提示
     notificationStore.addNotification('绑定成功', 'success');

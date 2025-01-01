@@ -15,27 +15,46 @@
       :disable-stream="true"
       :disable-auto-fetch="true"
       @on-page-change="handlePageChange"
+      @document-load="handleDocumentLoad"
       class="pdf-container"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits, watch } from 'vue'
 import PDF from 'pdf-vue3'
+import { useFlowStore } from '@renderer/stores/flow_store'
 
-defineProps<{
+const props = defineProps<{
   pdfUrl: string
   currentPage: number
 }>()
 
 const emit = defineEmits<{
   (e: 'page-change', page: number): void
+  (e: 'total-pages', total: number): void
 }>()
+
+const flowStore = useFlowStore()
 
 const handlePageChange = (page: number) => {
   emit('page-change', page)
 }
+
+// 处理文档加载完成事件
+const handleDocumentLoad = (pdf: any) => {
+  const totalPages = pdf.numPages
+  flowStore.totalNoticePages = totalPages
+  emit('total-pages', totalPages)
+  console.log('[PDFViewer] PDF加载完成，总页数:', totalPages)
+}
+
+// 监听页码变化
+watch(() => props.currentPage, (newPage) => {
+  console.log('[PDFViewer] 页码变化:', newPage)
+  flowStore.currentNoticePage = newPage
+})
 </script>
 
 <style scoped>
