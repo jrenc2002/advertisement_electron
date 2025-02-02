@@ -8,20 +8,10 @@
           <!-- Top Left: Date & Time -->
           <div class="flex flex-col justify-center items-center">
             <p class="text-2xl font-semibold text-primary">
-              {{
-                new Date(weatherData_today?.temperature?.recordTime || new Date()).toLocaleDateString(
-                  'zh-CN',
-                  { month: '2-digit', day: '2-digit' }
-                )
-              }}
+              {{ currentDate.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) }}
             </p>
             <p class="text-sm font-medium text-neutral/80">
-              {{
-                new Date(weatherData_today?.temperature?.recordTime || new Date()).toLocaleDateString(
-                  'zh-CN',
-                  { weekday: 'long' }
-                )
-              }}
+              {{ currentDate.toLocaleDateString('zh-CN', { weekday: 'long' }) }}
             </p>
           </div>
 
@@ -105,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import axios from 'axios'
 import img50 from '@renderer/assets/weatherIcons/pic50.png'
 import img51 from '@renderer/assets/weatherIcons/pic51.png'
@@ -283,6 +273,9 @@ const weatherData_today = ref<WeatherData_today>()
 const weatherData_today_detail = ref<WeatherData_today_detail>()
 const weatherData_warning = ref()
 
+// 添加一个 ref 来存储当前日期
+const currentDate = ref(new Date())
+
 onMounted(() => {
   axios
     .get('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en  ')
@@ -318,6 +311,28 @@ onMounted(() => {
       weatherData_warning.value = response.data
       // console.log(weatherData_warning.value)
     })
+
+  // 添加定时器，每天凌晨更新一次日期
+  const updateDate = () => {
+    currentDate.value = new Date()
+  }
+
+  // 计算到下一天凌晨的毫秒数
+  const now = new Date()
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+  const timeToMidnight = tomorrow.getTime() - now.getTime()
+
+  // 首先设置一个定时器在下一个凌晨触发
+  setTimeout(() => {
+    updateDate()
+    // 然后设置每24小时执行一次的定时器
+    setInterval(updateDate, 24 * 60 * 60 * 1000)
+  }, timeToMidnight)
+
+  // 组件卸载时清理定时器
+  onUnmounted(() => {
+    clearInterval(updateDate)
+  })
 })
 
 // 修改图标颜色的样式，降低一点饱和度和对比度
